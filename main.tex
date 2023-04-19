@@ -1089,8 +1089,7 @@ Při stahování příkladových databází používáme terminál \textsc{unix}
 
 \subsection{Soudobá křestní jména}
 V soudobé literární fikci se nám může hodit generovat postavám křestní jména.
-Stáhneme si proto z webu rodina.cz seznam 629 mužských a 605 ženských křestních jmen:
-
+%
 \begin{filecontents}[overwrite, nosearch, noheader]{krestni-jmena-zeny-download.sh}
 wget -O- https://www.rodina.cz/scripts/jmena/default.asp?muz=0 |
 xmllint -html -xpath '//a[contains(@href,"jmeno.asp")]/text()' \
@@ -1101,15 +1100,17 @@ wget -O- https://www.rodina.cz/scripts/jmena/default.asp?muz=1 |
 xmllint -html -xpath '//a[contains(@href,"jmeno.asp")]/text()' \
 - > krestni-jmena-muzi.txt
 \end{filecontents}
-
+%
 \begin{luacode*}
 os.execute("test -e krestni-jmena-zeny.txt || bash krestni-jmena-zeny-download.sh")
 os.execute("test -e krestni-jmena-muzi.txt || bash krestni-jmena-muzi-download.sh")
 \end{luacode*}
-
+%
 \begin{luacode*}
 os.execute("sed -i -e '1s/^/$ /' -e '2,$s/^/  /' krestni-jmena*download.sh")
 \end{luacode*}
+%
+Stáhneme si proto z webu rodina.cz seznam \input|"wc -l < krestni-jmena-muzi.txt" mužských a \input|"wc -l < krestni-jmena-zeny.txt" ženských křestních jmen:
 
 \begin{mintedblock}
 \myinputminted[linenos=false]{bash}{krestni-jmena-zeny-download.sh}
@@ -1161,8 +1162,7 @@ V našem příkladu jsme použili výchozí maximální délku kontextu 3, abych
 \label{sec:tolkien}
 
 Ve fanfikci z fantasy světa anglického spisovatele J.\ R.\ R.\ Tolkiena se nám může hodit generovat jména postavám různých ras.
-Stáhneme si proto z webu behindthename.com seznam 51 jmen trpaslíků, 19 jmen elfek a 316 jmen lidských mužů.
-
+%
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-download.sh}
 download_tolkien_names() {
 wget -O- https://behindthename.com/namesakes/list/tolkien/alpha |
@@ -1179,7 +1179,7 @@ download_tolkien_names Elf f > tolkien-jmena-elfek.txt
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-lidskych-muzu-download.sh}
 download_tolkien_names Man m > tolkien-jmena-lidskych-muzu.txt
 \end{filecontents}
-
+%
 \begin{luacode*}
 os.execute("cat tolkien-jmena-download.sh tolkien-jmena-trpasliku-download.sh > tolkien-jmena-trpasliku-download-complete.sh")
 os.execute("cat tolkien-jmena-download.sh tolkien-jmena-elfek-download.sh > tolkien-jmena-elfek-download-complete.sh")
@@ -1188,10 +1188,12 @@ os.execute("test -e tolkien-jmena-trpasliku.txt || bash tolkien-jmena-trpasliku-
 os.execute("test -e tolkien-jmena-elfek.txt || bash tolkien-jmena-elfek-download-complete.sh")
 os.execute("test -e tolkien-jmena-lidskych-muzu.txt || bash tolkien-jmena-lidskych-muzu-download-complete.sh")
 \end{luacode*}
-
+%
 \begin{luacode*}
 os.execute("sed -i -e '1s/^/$ /' -e '2,$s/^/  /' tolkien-jmena*download.sh")
 \end{luacode*}
+%
+Stáhneme si proto z webu behindthename.com seznam \input|"wc -l < tolkien-jmena-trpasliku.txt" jmen trpaslíků, \input|"wc -l < tolkien-jmena-elfek.txt" jmen elfek a \input|"wc -l < tolkien-jmena-lidskych-muzu.txt" jmen lidských mužů.
 
 \begin{mintedblock}
 \myinputminted[linenos=false]{bash}{tolkien-jmena-download.sh}
@@ -1247,21 +1249,22 @@ luk, zatímco člověk \randomname{clovek} divoce máchal mečem.
 \label{sec:cthulhu}
 
 Ve fanfikci z hororového světa amerického spisovatele J.\ P.\ Lovecrafta se nám může hodit generovat jména kosmických božstev, tzv. \emph{prastarých}.
-Stáhneme si proto z anglické wikipedie seznam 157 jmen prastarých:
-
+%
 \begin{filecontents}[overwrite, nosearch, noheader]{lovecraft-jmena-prastarych-download.sh}
 wget -O- https://en.wikipedia.org/wiki/List_of_Great_Old_Ones |
 xmllint -html -xpath '//table[2]//td[1]/text()' - | grep . \
 > lovecraft-jmena-prastarych.txt
 \end{filecontents}
-
+%
 \begin{luacode*}
 os.execute("test -e lovecraft-jmena-prastarych.txt || bash lovecraft-jmena-prastarych-download.sh")
 \end{luacode*}
-
+%
 \begin{luacode*}
 os.execute("sed -i -e '1s/^/$ /' -e '2,$s/^/  /' lovecraft-jmena-prastarych-download.sh")
 \end{luacode*}
+%
+Stáhneme si proto z anglické wikipedie seznam \input|"wc -l < lovecraft-jmena-prastarych.txt" jmen prastarých:
 
 \myinputminted[linenos=false]{bash}{lovecraft-jmena-prastarych-download.sh}
 
@@ -1305,21 +1308,22 @@ vyslovit lidskými ústy, se brzy objevil a jeho oči temně zářily.
 
 \subsection{Kouzla ve světě Harryho Pottera}
 Ve fanfikci ze světa Harryho Pottera se nám může hodit generovat nová jména kouzel.
-Stáhneme si proto z webu harrypotter.fandom.com seznam 192 kouzel:
-
+%
 \begin{filecontents}[overwrite, nosearch, noheader]{harry-potter-kouzla-download.sh}
 wget -O- https://harrypotter.fandom.com/wiki/List_of_spells |
 xmllint -html -xpath '//h3//i/a/text()' - \
 > harry-potter-kouzla.txt
 \end{filecontents}
-
+%
 \begin{luacode*}
 os.execute("test -e harry-potter-kouzla.txt || bash harry-potter-kouzla-download.sh")
 \end{luacode*}
-
+%
 \begin{luacode*}
 os.execute("sed -i -e '1s/^/$ /' -e '2,$s/^/  /' harry-potter-kouzla-download.sh")
 \end{luacode*}
+%
+Stáhneme si proto z webu harrypotter.fandom.com seznam \input|"wc -l < harry-potter-kouzla.txt" kouzel:
 
 \myinputminted[linenos=false]{bash}{harry-potter-kouzla-download.sh}
 
@@ -1366,21 +1370,22 @@ okamžitě sebou trhl a rozběhl se k němu s otevřenou tlamou.
 \label{sec:pokemon}
 
 Ve fanfikci ze světa kapesních příšerek Pokémon se nám může hodit generovat jména pokémonů.
-Stáhneme si proto z webu bulbapedia.bulbagarden.net seznam 1015 jmen pokémonů:
-
+%
 \begin{filecontents}[overwrite, nosearch, noheader]{jmena-pokemonu-download.sh}
 wget -O- 'https://bulbapedia.bulbagarden.net/wiki/List_of_'\
 'Pokémon_by_name' | xmllint -html -xpath '//table//img/@alt' - |
 sed -r 's/ alt="(.*)"/\1/' > jmena-pokemonu.txt
 \end{filecontents}
-
+%
 \begin{luacode*}
 os.execute("test -e jmena-pokemonu.txt || bash jmena-pokemonu-download.sh")
 \end{luacode*}
-
+%
 \begin{luacode*}
 os.execute("sed -i -e '1s/^/$ /' -e '2,$s/^/  /' jmena-pokemonu-download.sh")
 \end{luacode*}
+%
+Stáhneme si proto z webu bulbapedia.bulbagarden.net seznam \input|"wc -l < jmena-pokemonu.txt" jmen pokémonů:
 
 \myinputminted[linenos=false]{bash}{jmena-pokemonu-download.sh}
 
@@ -1521,8 +1526,8 @@ Pokud předpokládáme, že všechny jazyky jsou apriori stejně pravděpodobné
 V praxi rozlišovat češtinu od slovenštiny nepotřebujeme, protože oba jazyky mají v \TeX u společné vzory pro dělení slov~\cite{sojka2019unreasonable,sojka2020towards}. Máme ale mnoho jiných jazyků $J$, pro které společné vzory pro dělení slov (zatím) neexistují. Při detekci jazyka bychom vždy vybrali nejpravděpodobnější jazyk $\text{\worldflag[width=1.5mm]{ANY}\!\!} = \argmax_{\text{\worldflag[width=1.5mm]{ANY}\!\!}\in J} P(V; M_\text{\worldflag[width=1.5mm]{ANY}\!\!})$.
 
 \subsubsection{Výplňový text}
-Při přípravě dokumentových šablon se nám může hodit generovat výplňový text, který do šablon nalijeme při přípravě ukázkových maket. Pokud budeme, stejně jako v předchozí sekci, trénovat naše modely místo jmen na větách, můžeme snadno generovat věrohodný výplňový text. Stáhněme si například 114 vět z knihy \emph{Dášeňka čili život štěněte} spisovatele Karla Čapka~\cite{capek1933dasenka}:
-
+Při přípravě dokumentových šablon se nám může hodit generovat výplňový text, který do šablon nalijeme při přípravě ukázkových maket. Pokud budeme, stejně jako v předchozí sekci, trénovat naše modely místo jmen na větách, můžeme snadno generovat věrohodný výplňový text.
+%
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-download.sh}
 for NAME in dasenka-cili-zivot-stenete{,-{2..5}}.html; do
 wget -O- https://www.cesky-jazyk.cz/citanka/karel-capek/$NAME |
@@ -1530,14 +1535,16 @@ xmllint -html -xpath '//div[@id="dbtext"]//p[2]/text()' -
 done | grep '^\w' | sed -e 's/&#13;//g' -e 's/\. /.\n/g' \
 > karel-capek-dasenka.txt
 \end{filecontents}
-
+%
 \begin{luacode*}
 os.execute("test -e karel-capek-dasenka.txt || bash karel-capek-dasenka-download.sh")
 \end{luacode*}
-
+%
 \begin{luacode*}
 os.execute("sed -i -e '1s/^/$ /' -e '2,$s/^/  /' karel-capek-dasenka-download.sh")
 \end{luacode*}
+%
+Stáhněme si například \input|"wc -l < karel-capek-dasenka.txt" vět z knihy \emph{Dášeňka čili život štěněte} spisovatele Karla Čapka~\cite{capek1933dasenka}:
 
 \myinputminted[linenos=false]{bash}{karel-capek-dasenka-download.sh}
 
