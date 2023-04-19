@@ -1,0 +1,43 @@
+\begin{tikzpicture}[
+  ->, % makes the edges directed
+  >=stealth', % makes the arrow heads bold
+  node distance=1.75cm, % specifies the minimum distance between two nodes. Change if necessary.
+  every state/.style={thick, fill=gray!10}, % sets the properties for each ’state’ node
+  initial text=$ $, % sets the text that appears on the start arrow
+]
+\node[state, initial] (start) {$v_{29}$};
+\node[state, right of=start] (pe) {$v_{30}$};
+\node[state, right of=pe] (s) {$v_{31}$};
+\node[state, right of=s] (-f) {$v_{32}$};
+\node[state, above of=pe] (maxi) {$v_{33}$};
+\node[state, below of=s, accepting] (end) {$v_{34}$};
+
+\draw (start) edge[line width=0.5pt, bend left=45] node[above, rotate=45]{maxi} node[below, rotate=45]{1} (maxi);
+\draw (start) edge[line width=1pt] node[above]{pe} node[below]{2} (pe);
+\draw (maxi) edge[line width=1pt, bend right=35] node[above, rotate=90]{pe} node[below, rotate=90]{2} (pe);
+\draw (maxi) edge[line width=0.5pt, loop, looseness=5] node[above]{li} node[below]{1} (maxi);
+\draw (pe) edge[line width=1.5pt] node[above]{s} node[below]{3} (s);
+\draw (pe) edge[line width=0.5pt, bend left=85] node[above]{js} node[below]{1} (s);
+\draw (s) edge[line width=0.5pt, bend left=85] node[above]{e} node[below]{1} (pe);
+\draw (s) edge[line width=1pt] node[above]{\textvisiblespace f} node[below]{2} (-f);
+\draw (-f) edge[line width=0.5pt, bend right=27.5] node[above, rotate=-27.5]{i} node[below, rotate=-27.5]{1} (maxi);
+\draw (s) edge[line width=0.5pt, bend left=45] node[above, rotate=90]{$\epsilon$} node[below, rotate=90]{1} (end);
+\draw (-f) edge[line width=0.5pt, bend left=55] node[above, rotate=45]{ík} node[below, rotate=45]{1} (end);
+\draw (pe) edge[line width=0.5pt, bend right=55] node[above, rotate=-45]{k} node[below, rotate=-45]{1} (end);
+
+\end{tikzpicture}
+\scriptsize
+\raisebox{2.1cm}{\begin{tabular}{@{}l@{}r@{}}
+\toprule
+Slovo $S$ & $P(S)$ \\
+\midrule
+\multicolumn{2}{@{}l@{}}{\textls[-55]{$\big(\text{maxi}(\text{li})^i\big)^j\text{p}\big((\text{ej}^k\text{s})^l\text{\textvisiblespace fi}(\text{li})^u\text{p}\big)^v(\text{ej}^w\text{s})^x(\text{\textvisiblespace fík})^y$}} \\
+\multicolumn{2}{@{}r@{}}{\textls[-35]{$0{,}\overline3^{ij+klv+uv+wx}\cdot0{,}6^{lv+x}\cdot0{,}1\overline6^v\cdot 16{,}\overline6\ \%$}} \\
+\multicolumn{2}{@{}l@{}}{\textls[-55]{$\big(\text{maxi}(\text{li})^i\big)^j\text{p}\big((\text{ej}^k\text{s})^l\text{\textvisiblespace fi}(\text{li})^u\text{p}\big)^v(\text{ej}^w\text{s})^x\text{ek}$}} \\
+\multicolumn{2}{@{}r@{}}{\textls[-35]{$0{,}\overline3^{ij+klv+uv+wx}\cdot0{,}6^{lv+x}\cdot0{,}1\overline6^v\cdot 3{,}\overline3\ \%$}} \\
+\bottomrule
+\\[-1ex]
+\multicolumn{2}{@{}l@{}}{$\forall i,j,k,l,u,v,w,x,y: i\geq0, j\in\{0, 1\},$} \\
+\multicolumn{2}{@{}l@{}}{$k\in\{0, 1\}, l\geq0, u\geq0, v\geq0, w\in\{0, 1\},$} \\
+\multicolumn{2}{@{}l}{$x\geq 1, y\in\{0, 1\}$} \\
+\end{tabular}}

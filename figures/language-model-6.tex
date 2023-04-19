@@ -1,0 +1,26 @@
+\begin{tikzpicture}[
+  ->, % makes the edges directed
+  >=stealth', % makes the arrow heads bold
+  node distance=2.5cm, % specifies the minimum distance between two nodes. Change if necessary.
+  every state/.style={thick, fill=gray!10}, % sets the properties for each ’state’ node
+  initial text=$ $, % sets the text that appears on the start arrow
+]
+\node[state, initial] (start) {$v_{12}$};
+\node[state, right of=start] (pe) {$v_{13}$};
+\node[state, right of=pe, accepting] (end) {$v_{14}$};
+
+\draw (start) edge[line width=1pt] node[above]{pe} node[below]{2} (pe);
+\draw (pe) edge[line width=0.5pt, bend left=35] node[above]{s\textvisiblespace filipes} node[below]{1} (end);
+\draw (pe) edge[line width=0.5pt, bend right=35] node[above]{jsek} node[below]{1} (end);
+\draw (start) edge[line width=0.5pt, bend right=65] node[above]{maxipes\textvisiblespace fík} node[below]{1} (end);
+\end{tikzpicture}
+\leavevmode\kern1cm
+\raisebox{1.65cm}{\begin{tabular}{@{}lr@{}}
+\toprule
+Slovo $S$ & $P(S)$ \\
+\midrule
+pes filipes & $33{.}\overline3\ \%$ \\
+pejsek & $33{.}\overline3\ \%$ \\
+maxipes fík & $33{.}\overline3\ \%$ \\
+\bottomrule
+\end{tabular}}

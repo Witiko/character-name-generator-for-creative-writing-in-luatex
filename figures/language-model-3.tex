@@ -1,0 +1,34 @@
+\begin{tikzpicture}[
+  ->, % makes the edges directed
+  >=stealth', % makes the arrow heads bold
+  node distance=1.5cm, % specifies the minimum distance between two nodes. Change if necessary.
+  every state/.style={thick, fill=gray!10}, % sets the properties for each ’state’ node
+  initial text=$ $, % sets the text that appears on the start arrow
+]
+\node[state, initial] (start) {$v_{19}$};
+\node[state, right of=start] (pe) {$v_{20}$};
+\node[state, right of=pe] (s) {$v_{21}$};
+\node[state, right of=s] (-f) {$v_{22}$};
+\node[state, below of=s, accepting] (end) {$v_{23}$};
+
+\draw (start) edge[line width=1pt] node[above]{pe} node[below]{2} (pe);
+\draw (pe) edge[line width=0.5pt] node[above]{s} node[below]{1} (s);
+\draw (pe) edge[line width=0.5pt, bend right=55] node[above, rotate=-45]{jsek} node[below, rotate=-45]{1} (end);
+\draw (s) edge[line width=1pt, bend right=45] node[above]{\textvisiblespace f} node[below]{2} (-f);
+\draw (-f) edge[line width=0.5pt, bend right=65] node[above]{ilipes} node[below]{1} (s);
+\draw (-f) edge[line width=0.5pt, bend left=55] node[above, rotate=45]{ík} node[below, rotate=45]{1} (end);
+\draw (start) edge[line width=0.5pt, bend left=65] node[above]{maxipes} node[below]{1} (s);
+\draw (s) edge[line width=0.5pt] node[above, rotate=90]{$\epsilon$} node[below, rotate=90]{1} (end);
+\end{tikzpicture}
+\leavevmode\kern0.25cm
+\footnotesize
+\raisebox{1.85cm}{\begin{tabular}{@{}lr@{}}
+\toprule
+Slovo $S$ & $P(S)$ \\
+\midrule
+pejsek & $33{.}\overline3\ \%$ \\
+(maxi)$^i$pes(\textvisiblespace filipes)$^j$(\textvisiblespace fík)$^k$ & $0{,}\overline3^j\cdot 11{.}\overline1\ \%$ \\
+\bottomrule
+\\[-1ex]
+\multicolumn{2}{@{}l}{$\forall i,j,k: i\in\{0,1\}, j\geq 0, k\in\{0,1\}$} \\
+\end{tabular}}
