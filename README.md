@@ -3,7 +3,10 @@
 Tento repozitář obsahuje zdrojový kód článku *Nápadovník jmen postav pro
 tvůrčí psaní v LuaTeXu*, který se chystám zveřejnit ve Zpravodaji CSTUGu.
 
-Článek vysázíte následujícími příkazy:
+Pro sazbu článku potřebujeme unixový systém s nainstalovaným programem
+`xmllint` z knihovny libxml2 a programem `wget`.
+
+Článek vysázíme následujícími příkazy:
 
 ``` bash
 latexmk -lualatex -shell-escape main.tex
