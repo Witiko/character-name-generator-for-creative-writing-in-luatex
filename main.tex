@@ -1085,6 +1085,8 @@ Pomocí našeho uživatelského rozhraní příkazů vytvoříme Katzův couvaj�
 \label{sec:priklady}
 V této sekci si stáhneme několik příkladových databází jmen, natrénujeme na nich náš model a ukážeme si, jak bychom vygenerovali jména postav a zahrnuli je do textu povídky.
 
+% TODO: Ukázat, jak si můžeme vygenerovaná jména chovat pro budoucí užití: \edef nebo parametr seed.
+
 Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžete uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex\textvisiblespace priklad.tex}. Pro úspěšný překlad si stáhneme do pracovního adresáře také soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
 
 \subsection{Soudobá křestní jména}
@@ -1431,6 +1433,8 @@ trenér věděl, že musí být vždy připraven na nečekané situace.
 \section{Budoucí práce}
 \label{sec:budouci-prace}
 V této sekci si uvedeme možná vylepšení vyvinutého jazykového modelu a další aplikace jazykových modelů v \TeX u, na které by se měla zaměřit budoucí práce.
+
+% TODO: Diskutovat skloňování jmen v češtině
 
 \subsection{Omezující podmínky pro generovaná jména}
 Náš jazykový model umožňuje uživateli zadat předponu, nebo příponu vygenerovaného jména, ale ne obojí zároveň. Dále uživatel nemůže ovlivnit střed vygenerovaného jména, nebo omezit jeho délku. Ve chvíli, kdy uživatel není s vygenerovaným jménem spokojený, musí jméno generovat opakovaně s různými náhodnými semínky, dokud není spokojený. Tento zdlouhavý proces bychom rádi urychlili tak, že uživateli umožníme zadat dodatečné omezující podmínky.
