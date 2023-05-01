@@ -8,7 +8,6 @@
 \makeatother
 \let\oldlooseness=\looseness
 \documentclass{csbulletin}
-\selectlanguage{czech}
 \usepackage[utf8]{inputenc}
 \usepackage{luacode}
 \usepackage{luavlna,lua-widow-control}
@@ -92,6 +91,9 @@
 }
 \makeatother
 \begin{document}
+
+\selectlanguage{czech}
+\singlechars{czech}{VvSsZzKk}
 
 \title{Nápadovník jmen pro tvůrčí psaní v Lua\TeX u}
 \EnglishTitle{Character Name Generator for Creative Writing in Lua\TeX}
