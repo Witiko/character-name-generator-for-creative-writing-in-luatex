@@ -845,6 +845,12 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
 \tl_gset:Nn \l_randomnames_graph_type_tl { nil }
 \tl_gset:Nn \l_randomnames_affix_tl { nil }
 
+\bool_new:N                           % Vytvoř proměnné pomocí
+  \l_randomnames_save_bool            % kterých bude uživatel moci
+\bool_gset_false:N                    % ukládat jména, která
+  \l_randomnames_save_bool            % využívá opakovaně.
+\tl_new:N \l_randomnames_save_tl
+
 \keys_define:nn                       % Vytvoř sběrnici, která
   { randomnames / take_random_walk }  % naplní lokální proměnné
   {                                   % zadanými hodnotami
@@ -859,6 +865,12 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
         \tl_set:Nn
           \l_randomnames_affix_tl
           { " \lua_escape:e { #1 } " }
+      },
+    save .code:n =                    % Umožni ukládat
+      {                               % vygenerovaná jména
+        \bool_set_true:N              % pro opakované použití.
+          \l_randomnames_save_bool
+        \tl_set:Nn \l_randomnames_save_tl { #1 }
       },
     prefix .meta:n =                  % Umožni zadávat předpony
       {                               % a přípony náhodných
@@ -887,7 +899,7 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
         randomnames /                 % nepovinných parametrů.
         take_random_walk
       }
-      { #1 }         
+      { #1 }
     \lua_now:e                        % Zavolej funkci
       {                               % `randomnames.take_random
         local~randomnames =           % walk()` v jazyce Lua.
@@ -900,8 +912,17 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
           \l_randomnames_min_context_size_tl,
           \l_randomnames_max_context_size_tl
         )
-        tex.print(result)
+        token.set_macro(              % Ulož vygenerované jméno
+          "l_tmpa_tl", result)        % do proměnné `\l_tmpa_tl`
+      }                               % jazyka expl3.
+    \bool_if:NT                       % Pokud uživatel uvedl
+      \l_randomnames_save_bool        % parametr `save`, ulož
+      {                               % vygenerované jméno
+        \cs_gset:cpx                  % do zadaného TeXového
+          \l_randomnames_save_tl      % příkazu.
+          { \l_tmpa_tl }
       }
+    \tl_use:N \l_tmpa_tl              % Vlož jméno na výstup.
     \group_end:                       % Resetuj hodnoty lokálních
   }                                   % proměnných zpět na `nil`.
 
@@ -1029,7 +1050,7 @@ Programovací jazyk expl3 má pro uživatele \TeX u poměrně neobvyklou syntax.
       { #2 }
   }
 
-\NewExpandableDocumentCommand         % Vytvoř LaTeXový příkaz
+\NewDocumentCommand                   % Vytvoř LaTeXový příkaz
   { \randomname }                     % `\randomname` s jedním
   { O{} m }                           % nepovinným a jedním
   {                                   % povinným argumentem,
@@ -1087,8 +1108,6 @@ Pomocí našeho uživatelského rozhraní příkazů vytvoříme Katzův couvaj�
 \section{Příklady užití}
 \label{sec:priklady}
 V této sekci si stáhneme několik příkladových databází jmen, natrénujeme na nich náš model a ukážeme si, jak bychom vygenerovali jména postav a zahrnuli je do textu povídky.
-
-% TODO: Ukázat, jak si můžeme vygenerovaná jména chovat pro budoucí užití: \edef nebo parametr seed.
 
 Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžete uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex\textvisiblespace priklad.tex}. Pro úspěšný překlad si stáhneme do pracovního adresáře také soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
 
@@ -1251,10 +1270,8 @@ luk, zatímco člověk \randomname{clovek} divoce máchal mečem.
 \input tolkien-jmena-example-04
 
 Pokud neuvedeme náhodné semínko, každé použití příkazu \verb|\randomname|
-vygeneruje nové jméno. Pro zachování vygenerovaných jmen můžeme použít primitivní
-\TeX ový příkaz \verb|\edef|, pomocí kterého jednou zavoláme příkaz
-\verb|\randomname| a jeho výstup si uložíme např. do příkazu \verb|\ČLOVĚK|.
-Příkaz \verb|\ČLOVĚK| pak můžeme opakovaně použít v textu fanfikce:
+vygeneruje nové jméno. Pro zachování vygenerovaných jmen můžeme použít
+parametr \verb|save|, kterým si jméno postavy trvale uložíme:
 
 \begin{luacode*}
 models.trpaslik = nil
@@ -1266,12 +1283,11 @@ randoms.clovek = nil
 \end{luacode*}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-example-06.tex}
-\edef\ČLOVĚK/{\randomname{clovek}}%
-\ČLOVĚK/ vyrostl v bohaté obchodnické rodině. Když však jeho otec
-zesnul a rodinné jmění zpustlo, \ČLOVĚK/ se stal dobrodruhem a
-nechal se najímat jako žoldnéř. Během svých dobrodružství si
-\ČLOVĚK/ vydobyl pověst neohroženého válečníka a jeho meč se stal
-jeho nejcennějším jměním.
+\randomname[save=Žoldnéř]{clovek} vyrostl v bohaté obchodnické
+rodině. Když však jeho otec zesnul a rodinné jmění zpustlo,
+\Žoldnéř\ se stal dobrodruhem a nechal se najímat jako žoldnéř.
+Během svých dobrodružství si \Žoldnéř\ vydobyl pověst neohroženého
+válečníka a jeho meč se stal jeho nejcennějším jměním.
 \end{filecontents}
 
 \begin{mintedblock}
