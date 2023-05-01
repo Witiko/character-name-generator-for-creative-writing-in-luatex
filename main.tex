@@ -990,13 +990,14 @@ randoms.pes = nil
 Programovací jazyk expl3 má pro uživatele \TeX u poměrně neobvyklou syntax. Pomocí \LaTeX ového balíčku xparse proto vytvoříme uživatelské rozhraní, které bude pro uživatele přirozenější.
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-01.sty}
+\input randomnames\relax              % Načti naše přemostění.
+
 \ProvidesExplPackage
   {randomnames}%
-  {2023-04-04}%
+  {2023-05-01}%
   {1.0.0}%
   {Character name generators for creative writing in TeX}
 
-\input randomnames\relax              % Načti naše přemostění.
 \RequirePackage{xparse}               % Načti balíček xparse.
 
 \end{filecontents}
