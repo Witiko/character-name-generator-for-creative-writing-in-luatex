@@ -1028,7 +1028,7 @@ Programovací jazyk expl3 má pro uživatele \TeX u poměrně neobvyklou syntax.
       { #2 }
   }
 
-\NewDocumentCommand                   % Vytvoř LaTeXový příkaz
+\NewExpandableDocumentCommand         % Vytvoř LaTeXový příkaz
   { \randomname }                     % `\randomname` s jedním
   { O{} m }                           % nepovinným a jedním
   {                                   % povinným argumentem,
@@ -1248,6 +1248,39 @@ luk, zatímco člověk \randomname{clovek} divoce máchal mečem.
 \input tolkien-jmena-example-02
 \unskip\unskip\unskip\unskip\unskip\unskip
 \input tolkien-jmena-example-04
+
+Pokud neuvedeme náhodné semínko, každé použití příkazu \verb|\randomname|
+vygeneruje nové jméno. Pro zachování vygenerovaných jmen můžeme použít primitivní
+\TeX ový příkaz \verb|\edef|, pomocí kterého jednou zavoláme příkaz
+\verb|\randomname| a jeho výstup si uložíme např. do příkazu \verb|\ČLOVĚK|.
+Příkaz \verb|\ČLOVĚK| pak můžeme opakovaně použít v textu fanfikce:
+
+\begin{luacode*}
+models.trpaslik = nil
+randoms.trpaslik = nil
+models.elfka = nil
+randoms.elfka = nil
+models.clovek = nil
+randoms.clovek = nil
+\end{luacode*}
+
+\begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-example-06.tex}
+\edef\ČLOVĚK/{\randomname{clovek}}%
+\ČLOVĚK/ vyrostl v bohaté obchodnické rodině. Když však jeho otec
+zesnul a rodinné jmění zpustlo, \ČLOVĚK/ se stal dobrodruhem a
+nechal se najímat jako žoldnéř. Během svých dobrodružství si
+\ČLOVĚK/ vydobyl pověst neohroženého válečníka a jeho meč se stal
+jeho nejcennějším jměním.
+\end{filecontents}
+
+\begin{mintedblock}
+\myinputminted[linenos=false]{tex}{tolkien-jmena-example-06.tex}
+\end{mintedblock}
+
+\noindent
+\input tolkien-jmena-example-02
+\unskip\unskip\unskip\unskip\unskip\unskip
+\input tolkien-jmena-example-06
 
 \subsection{Bytosti v Cthulhu mýtu J.\ P.\ Lovecrafta}
 \label{sec:cthulhu}
