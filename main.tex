@@ -1533,7 +1533,7 @@ python3 ./get_data.py krestni-jmena-muzi.txt krestni-jmena-muzi
 \begin{luacode*}
 os.execute("test -e krestni-jmena-zeny.decl -a -e krestni-jmena-muzi.decl || wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/get_data.py && wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/requirements.txt && python3 -m venv venv && bash -c 'source venv/bin/activate && python3 -m pip install -r requirements.txt'")
 os.execute("test -e krestni-jmena-zeny.decl || bash -c 'source venv/bin/activate && source sklonovani-zeny-download.sh'")
-os.execute("test -e krestni-jmena-muzi.decl || bash -c 'source venv/bin/activate && source klonovani-muzi-download.sh'")
+os.execute("test -e krestni-jmena-muzi.decl || bash -c 'source venv/bin/activate && source sklonovani-muzi-download.sh'")
 \end{luacode*}
 %
 \begin{luacode*}
