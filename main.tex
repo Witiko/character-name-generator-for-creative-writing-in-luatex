@@ -91,6 +91,12 @@
   \par\vspace{\topsep}\vspace{\partopsep}%
 }
 \makeatother
+\begin{luacode*}
+os.execute("test -e declension.lua || wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/declension.lua")
+os.execute("test -e declension.tex || wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/declension.tex")
+os.execute("test -e declension.sty || wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/declension.sty")
+\end{luacode*}
+\usepackage{declension}
 \begin{document}
 
 \selectlanguage{czech}
@@ -1113,6 +1119,7 @@ V této sekci si stáhneme několik příkladových databází jmen, natrénujem
 Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžete uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex\textvisiblespace priklad.tex}. Pro úspěšný překlad si stáhneme do pracovního adresáře také soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
 
 \subsection{Soudobá křestní jména}
+\label{sec:krestni-jmena}
 V soudobé literární fikci se nám může hodit generovat postavám křestní jména.
 %
 \begin{filecontents}[overwrite, nosearch, noheader]{krestni-jmena-zeny-download.sh}
@@ -1487,9 +1494,122 @@ trenér věděl, že musí být vždy připraven na nečekané situace.
 \label{sec:budouci-prace}
 V této sekci si uvedeme možná vylepšení vyvinutého jazykového modelu a další aplikace jazykových modelů v \TeX u, na které by se měla zaměřit budoucí práce.
 
-% TODO: Diskutovat skloňování jmen v češtině
-% Viz https://www.overleaf.com/project/64479eb8de925ab422e870a4
-% a https://github.com/xvrabcov/declension_names
+\subsection{Automatické skloňování českých a slovenských jmen}
+Pokud nemáme trénovací data v různých gramatických pádech a číslech, bude náš jazykový model generovat jména pouze v prvním pádě jednotného čísla. V analytickém jazyce, jako je angličtina, toto není problém. U flektivních jazyků, jako jsou čeština a slovenština, bychom ale chtěli, aby náš model uměl jména nejen generovat, ale také skloňovat.
+
+Tereza Vrabcová~\cite{vrabcova2023model} navrhla následující algoritmus skloňování českých jmen:
+\begin{enumerate}
+\item Pro každé jméno $J$ v trénovací množině:
+\begin{enumerate}
+\item Pokud jméno existuje ve wikislovníku, stáhni jeho skloňování odtud.
+\item Jinak stáhni skloňování jména z webu sklonuj.cz.
+\end{enumerate}
+\item Pro každé automaticky vygenerované jméno $J'$:
+\begin{enumerate}
+\item Najdi v trénovací množině jméno $J$ s nejpodobnější koncovkou:
+\begin{equation}
+\!\!\!\!J = \argmax_J\!\!\!\!\sum_{i=1,\ldots,\min(|J|, |J'|)} \begin{cases}
+\frac{1}{2^i} & J[|J| - i + 1] = J'[|J'| - i + 1], \\
+0 & \text{jinak}.
+\end{cases}
+\end{equation}
+\item Skloňuj jméno $J'$ stejně jako jméno $J$.
+\end{enumerate}
+\end{enumerate}
+
+\noindent
+Pro vyzkoušení algoritmu stáhneme do pracovního adresáře soubory \texttt{get\_data.py}, \texttt{requirements.txt}, \texttt{declension.lua}, \texttt{declension.tex} a \texttt{declension,sty}~\cite{vrabcova2023model}. Následně si stáhneme z webu rodina.cz česká křestní jména podle pokynů v sekci~\ref{sec:krestni-jmena} na straně~\pageref{sec:krestni-jmena}. Dále si pomocí skriptu \texttt{get\_data.py} stáhneme skloňování jmen:
+
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-pip-install.sh}
+python3 -m pip install -r requirements.txt
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-zeny-download.sh}
+python3 ./get_data.py krestni-jmena-zeny.txt krestni-jmena-zeny
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-muzi-download.sh}
+python3 ./get_data.py krestni-jmena-muzi.txt krestni-jmena-muzi
+\end{filecontents}
+%
+\begin{luacode*}
+os.execute("test -e krestni-jmena-zeny.decl -a -e krestni-jmena-muzi.decl || wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/get_data.py && wget https://raw.githubusercontent.com/xvrabcov/declension_names/main/requirements.txt && python3 -m venv venv && bash -c 'source venv/bin/activate && python3 -m pip install -r requirements.txt'")
+os.execute("test -e krestni-jmena-zeny.decl || bash -c 'source venv/bin/activate && source sklonovani-zeny-download.sh'")
+os.execute("test -e krestni-jmena-muzi.decl || bash -c 'source venv/bin/activate && source klonovani-muzi-download.sh'")
+\end{luacode*}
+%
+\begin{luacode*}
+os.execute("sed -i 's/^/$ /' sklonovani-*.sh")
+\end{luacode*}
+%
+\begin{mintedblock}
+\myinputminted[linenos=false]{bash}{sklonovani-pip-install.sh}
+\myinputminted[linenos=false]{bash}{sklonovani-zeny-download.sh}
+\myinputminted[linenos=false]{bash}{sklonovani-muzi-download.sh}
+\end{mintedblock}
+
+\noindent
+Nakonec sestavíme dva modely, jeden pro mužská křestní jména a druhý pro
+ženská křestní jména, a použijeme je v textu povídky:
+
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-01.tex}
+\documentclass{article}
+\usepackage[czech]{babel}
+\usepackage{randomnames}
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-02.tex}
+\newmodel{zena}
+\newmodel{muz}
+\inputnames{zena}{krestni-jmena-zeny.txt}
+\inputnames{muz}{krestni-jmena-muzi.txt}
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-03.tex}
+\usepackage{declension}
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-04.tex}
+\newdeclmodel{zena}
+\newdeclmodel{muz}
+\loaddata{zena}{krestni-jmena-zeny.decl}{krestni-jmena-zeny.names}
+\loaddata{muz}{krestni-jmena-muzi.decl}{krestni-jmena-muzi.names}
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-05.tex}
+\begin{document}
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-06.tex}
+Když se setkali na výstavě psů, \randomname[prefix=Ro,save=On]
+{muz} a \randomname[suffix=lie,save=Ona]{zena} si okamžitě
+uvědomili, že se už nikdy nebudou chtít rozloučit. \decline{zena}
+{\Ona}{1}{s} si uvědomila, že bez \decline{muz}{\On}{2}{s} nechce
+žít. \decline{muz}{\On}{1}{s} si ve stejný okamžik uvědomil, že
+s \decline{zena}{\Ona}{7}{s} chce žít navždy.
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-07.tex}
+\end{document}
+\end{filecontents}
+
+\begin{mintedblock}
+\myinputminted[linenos=false]{tex}{sklonovani-example-01.tex}
+\myinputminted[linenos=false]{tex}{sklonovani-example-02.tex}
+\myinputminted[linenos=false]{tex}{sklonovani-example-03.tex}
+\myinputminted[linenos=false]{tex}{sklonovani-example-04.tex}
+\myinputminted[linenos=false]{tex}{sklonovani-example-05.tex}
+\myinputminted[linenos=false]{tex}{sklonovani-example-06.tex}
+\myinputminted[linenos=false]{tex}{sklonovani-example-07.tex}
+\end{mintedblock}
+
+\begin{luacode*}
+randoms.zena = nil
+models.zena = nil
+randoms.muz = nil
+models.muz = nil
+\end{luacode*}
+
+\noindent
+\input sklonovani-example-02
+\input sklonovani-example-04
+\unskip\unskip\unskip\unskip
+\unskip\unskip\unskip\unskip
+\input sklonovani-example-06
+
+Popsaný algoritmus funguje pouze pro česká jména a hledání jména s nejpodobnější koncovkou má lineární časovou složitost ve velikosti trénovací množiny. Budoucí práce by se měla zaměřit na rozšíření algoritmu o další flektivní jazyky jako slovenštiny a použít datovou strukturu jako trie pro efektivní hledání trénovacích jmen s nejdelší společnou koncovkou.
 
 \subsection{Omezující podmínky pro generovaná jména}
 Náš jazykový model umožňuje uživateli zadat předponu, nebo příponu vygenerovaného jména, ale ne obojí zároveň. Dále uživatel nemůže ovlivnit střed vygenerovaného jména, nebo omezit jeho délku. Ve chvíli, kdy uživatel není s vygenerovaným jménem spokojený, musí jméno generovat opakovaně s různými náhodnými semínky, dokud není spokojený. Tento zdlouhavý proces bychom rádi urychlili tak, že uživateli umožníme zadat dodatečné omezující podmínky.
