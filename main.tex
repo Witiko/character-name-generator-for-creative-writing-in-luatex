@@ -1190,9 +1190,9 @@ Ve fanfikci z fantasy světa anglického spisovatele J.\ R.\ R.\ Tolkiena se ná
 %
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-download.sh}
 download_tolkien_names() {
-wget -O- https://behindthename.com/namesakes/list/tolkien/alpha |
-xmllint -html -xpath '//div[@id="div_refinepage"]/table/tr[td[2]/
-text() = "'$2'" and td[3]/text() = "'$1'"]/td[1]' - |
+wget -O- https://behindthename.com/namesakes/list/tolkien/alpha|
+xmllint -html -xpath '//div[@id="div_refinepage"]/table/
+tr[td[2]/text() = "'$2'" and td[3]/text() = "'$1'"]/td[1]' - |
 sed 's/<[^>]*>//g'; }
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-trpasliku-download.sh}
