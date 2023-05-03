@@ -109,7 +109,7 @@ os.execute("test -e declension.sty || wget https://raw.githubusercontent.com/xvr
 \maketitle[1ex]
 
 \begin{abstract}
-Známý výrok informatika Phila Karltona nám říká, že na informatice jsou obtížné pouze dvě věci: vyprazdňování keše a přidělování jmen. Své o tom vědí i spisovatelé, kteří musí kromě příběhu a světa vymyslet jména všech svých příběhových postav. V tomto článku vyvineme jazykový model, který spisovatelům umožní automaticky generovat jména postav při tvůrčím psaní v Lua\TeX u. Kromě generování jmen postav si představíme i další možná použití jazykových modelů v Lua\TeX u, jako je automatické přepínání vzorů dělení slov podle aktuálního jazyka a generování výplňového textu. \TeX nicky zaměřeným čtenářům článek poslouží jako prvotní seznámení s programovacími jazyky Lua a expl3 a s \LaTeX ovým balíčkem xparse pro přípravu uživatelských rozhraní.
+Známý výrok informatika Phila Karltona nám říká, že na informatice jsou obtížné pouze dvě věci: vyprazdňování keše a přidělování jmen. Své o tom vědí i spisovatelé, kteří musí kromě příběhu a světa vymyslet jména všech svých příběhových postav. V tomto článku vyvineme jazykový model, který spisovatelům umožní automaticky generovat jména postav při tvůrčím psaní v Lua\TeX u. Kromě pomoci při tvůrčím psaní si představíme i další možná použití jazykových modelů v Lua\TeX u, jako je automatické přepínání vzorů dělení slov podle aktuálního jazyka a generování výplňového textu. \TeX nicky zaměřeným čtenářům článek poslouží jako prvotní seznámení s programovacími jazyky Lua a expl3 a s \LaTeX ovým balíčkem xparse pro přípravu uživatelských rozhraní.
 \end{abstract}
 \klicovaslova: tvůrčí psaní, trie, jazykové modely, Lua\TeX, Lua, expl3, xparse
 
@@ -119,7 +119,7 @@ Se vzestupem aplikací postavených na velkých jazykových modelech od firmy Op
 
 V tomto článku se svezeme na vlně zájmu o jazykové modely a vyvineme si v jazyce Lua malý jazykový model, který můžeme snadno využít v dokumentech sázených pomocí Lua\TeX u. Náš jazykový model bude sloužit spisovatelům pro generování kreativních jmen postav při tvůrčím psaní, ale uvedeme si i další potenciální využití jazykových modelů v \TeX u, jako je automatické přepínání vzorů dělení slov podle aktuálního jazyka a generování výplňového textu pro přípravu maket.
 
-Nejprve si v sekci~\ref{sec:definice} představíme náš jazykový model pomocí obrázků, příkladů a matematických definic. V sekci~\vref{sec:implementace} popsaný model implementujeme v programovacím jazyce Lua a v sekci~\vref{sec:rozhrani} mu v programovacím jazyce expl3 a pomocí \LaTeX ového balíčku xparse připravíme uživatelské rozhraní pro snadné využití v dokumentech. \TeX nicky zaměřeným čtenářům tato sekce poslouží jako prvotní seznámení s programovacími jazyky Lua a expl3 a s \LaTeX ovým balíčkem xparse. Následně v sekci~\vref{sec:priklady} vyvinutý model natrénujeme na několika příkladových databázích jmen a ukážeme si, jak bychom vygenerovali jména postav a zahrnuli je do textu povídky. Čtenáři, kteří se nezajímají o detaily jazykového modelu, mohou začít touto sekcí. Nakonec si v sekci~\vref{sec:budouci-prace} uvedeme možná vylepšení jazykového modelu a další aplikace jazykových modelů v \TeX u, jako je automatické přepínání vzorů dělení slov podle aktuálního jazyka a generování výplňového textu. V sekci~\vref{sec:zaver} článek uzavřeme shrnutím výstupů článku a jejich praktického přínosu pro čtenáře.
+Nejprve si v sekci~\ref{sec:definice} představíme náš jazykový model pomocí obrázků, příkladů a matematických definic. V sekci~\vref{sec:implementace} popsaný model implementujeme v programovacím jazyce Lua a v sekci~\vref{sec:rozhrani} mu v programovacím jazyce expl3 a pomocí \LaTeX ového balíčku xparse připravíme uživatelské rozhraní pro snadné využití v dokumentech. \TeX nicky zaměřeným čtenářům tato sekce poslouží jako prvotní seznámení s programovacími jazyky Lua a expl3 a s \LaTeX ovým balíčkem xparse. Následně v sekci~\vref{sec:priklady} natrénujeme vyvinutý model na několika příkladových databázích jmen a ukážeme si, jak bychom vygenerovali jména postav a zahrnuli je do textu povídky. Čtenáři, kteří se nezajímají o detaily jazykového modelu, mohou začít touto sekcí. Nakonec si v sekci~\vref{sec:budouci-prace} uvedeme možná vylepšení jazykového modelu a další aplikace jazykových modelů v \TeX u, jako je automatické přepínání vzorů dělení slov podle aktuálního jazyka a generování výplňového textu. V sekci~\vref{sec:zaver} článek uzavřeme shrnutím výsledků článku a jejich praktického přínosu pro čtenáře.
 
 \section{Jazykový model pro generování jmen postav}
 \label{sec:definice}
@@ -175,7 +175,7 @@ Náš jazykový model sice dokáže vygenerovat slova, pomocí kterých jsme ho 
 \begin{equation}
 P'(S) = \prod_{i = 1,\ldots,|S|} P\big(S[i]\mid S[i-n, \ldots, i-1]\big)\cdot P\big(\epsilon\mid S\big[|S|-n, \ldots, |S|\big]\big).
 \end{equation}
-Pro délky kontextu $n\geq 6$ obdržíme stejný jazykový model jako na Obrázku~\ref{fig:language-model-6}. Jazykové modely pro dálky kontextu $0<n\leq 5$ najdeme na Obrázku~\ref{fig:language-model-5-1}. Při $n=4$ a $n=5$ dokáže jazykový model vymyslet nová slovní spojení ,,pes fík`` a ,,maxipes filipes``. Při $n=3$ dostáváme nové slovo ,,pes`` a v grafu nám vzniká cyklus mezi vrcholy $v_{21}$ a $v_{22}$, který s nízkou pravděpodobností generuje slovní spojení libovolné délky jako ,,maxipes filipes filipes fík`` s pravděpodobností $1{,}23\ \%$. Při $n=2$ dokážeme vygenerovat jména jako ,,maxipes filipejsek``, která obsahují nová odvozená slova. Při $n=1$ vznikají v modelu krátké cykly nad vrcholem $v_{33}$ a mezi vrcholy $v_{30}$ a $v_{31}$, díky kterým dokážeme vygenerovat nová jména s opakovanými slabikami jako ,,maxilipes fililipes fík`` a ,,peses filipejsejsek``.
+Pro délky kontextu $n\geq 6$ obdržíme stejný jazykový model jako na Obrázku~\ref{fig:language-model-6}. Jazykové modely pro délky kontextu $0<n\leq 5$ najdeme na Obrázku~\ref{fig:language-model-5-1}. Při $n=4$ a $n=5$ dokáže jazykový model vymyslet nová slovní spojení ,,pes fík`` a ,,maxipes filipes``. Při $n=3$ dostáváme nové slovo ,,pes`` a v grafu nám vzniká cyklus mezi vrcholy $v_{21}$ a $v_{22}$, který s nízkou pravděpodobností generuje slovní spojení libovolné délky jako ,,maxipes filipes filipes fík`` s pravděpodobností $1{,}23\ \%$. Při $n=2$ dokážeme vygenerovat jména jako ,,maxipes filipejsek``, která obsahují nová odvozená slova. Při $n=1$ vznikají v modelu krátké cykly nad vrcholem $v_{33}$ a mezi vrcholy $v_{30}$ a $v_{31}$, díky kterým dokážeme vygenerovat nová jména s opakovanými slabikami jako ,,maxilipes fililipes fík`` a ,,peses filipejsejsek``.
 
 \subsection{Katzův couvající jazykový model}
 Při generování nových jmen můžeme náhodné procházky uvodit požadovanou předponou, nebo příponou. Při dlouhých kontextech ale bude mít většina předpon a přípon nulovou pravděpodobnost, zatímco při krátkých kontextech budou generovaná jména vypadat nahodile. Pokud chceme např. vygenerovat jméno pohádkového psa s předponou i-, selžeme pro všechny hodnoty $n\geq 2$ a při $n=1$ získáme nepravděpodobná jména jako ,,ipek`` a ,,ililipejejs``.
@@ -280,7 +280,7 @@ end
 \begin{mintedblock}
 \myinputminted{lua}{randomnames-model-01a.lua}
 \myinputminted[texcomments]{lua}{randomnames-model-01b.lua}
-\footnotetext{Jazyk Lua používá tzv. \emph{prototypální dědičnost} pomocí \emph{metatabulek}~\cite[sekce~20.4]{ierusalimschy2016lua}, která je obecnější než třídní dědičnost, kterou známe z objektově orientovaných jazyků, jako jsou C++ a Java. Zde jsme vytvořili prázdnýou hašovou tabulku \texttt{model} s metatabulkou \texttt{\{ \_\_index = ForgetfulModel \}}, která říká, že při přístupu k \texttt{model}u se mají neznámé klíče hledat v hašové tabulce \texttt{ForgetfulModel}. Toto nám umožňuje volat metody jako \texttt{model.add\_name(model, name)} nebo krátce \texttt{model:add\_name(name)}.\ifreviewversion\ \emph{Poznámka pro recenzenty: Pokud při čtení kódu narazíte na další atypické konstrukce, které si žádají komentář, budu rád, když mi o nich napíšete.}\fi}
+\footnotetext{Jazyk Lua používá tzv. \emph{prototypální dědičnost} pomocí \emph{metatabulek}~\cite[sekce~20.4]{ierusalimschy2016lua}, která je obecnější než třídní dědičnost, kterou známe z objektově orientovaných jazyků, jako jsou C++ a Java. Zde jsme vytvořili prázdnou hašovou tabulku \texttt{model} s metatabulkou \texttt{\{ \_\_index = ForgetfulModel \}}, která říká, že při přístupu k \texttt{model}u se mají neznámé klíče hledat v hašové tabulce \texttt{ForgetfulModel}. Toto nám umožňuje volat metody jako \texttt{model.add\_name(model, name)} nebo krátce \texttt{model:add\_name(name)}.\ifreviewversion\ \emph{Poznámka pro recenzenty: Pokud při čtení kódu narazíte na další atypické konstrukce, které si žádají komentář, budu rád, když mi o nich napíšete.}\fi}
 \myinputminted{lua}{randomnames-model-01c.lua}
 \end{mintedblock}
 
@@ -375,7 +375,7 @@ Jazyk Lua 5.3 používá alespoň 32bitová celá čísla se znaménkem a neurč
 \begin{equation}
 x_n = a\cdot x_{n-1}\pmod{m},
 \end{equation}
-kde $x_1\neq0\pmod{m}$ je náhodné semínko, $x_n$ je $n$té pseudonáhodné číslo a $a, m$ jsou tabulkové hodnoty.
+kde $x_1\neq0\pmod{m}$ je náhodné semínko, $x_n$ je $n$-té pseudonáhodné číslo a $a, m$ jsou tabulkové hodnoty.
 Pro dosažení nezávislosti na platformě požadujeme, aby součin $a\cdot x_{n-1}$ nepřesáhl hodnotu $2^{31} - 1$. Toho dosáhneme vhodným výběrem hodnot $a = 771\,645\,345, m = 2^{30} - 35 = 1\,073\,741\,789$~\cite[tabulka~2]{l1999tables}, omezením semínka na hodnoty od 1 do $m - 1$ a použitím algoritmu pro modulární násobení.
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random.lua}
@@ -747,7 +747,7 @@ return randomnames
 \subsection{Přemostění mezi jazyky Lua a \TeX{} pomocí jazyka expl3}
 \label{sec:rozhrani-premosteni}
 
-Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít přemostit naši fasádu na \TeX ová makra. Na rozdíl od jazyka Lua, ve kterém můžeme použít speciální prázdnou hodnotu \texttt{nil} pro nepovinné parametry, nemáme v jazyce \TeX{} přímočarý způsob, jak část parametrů funkce vynechat. Využijeme proto datový typ key--value programovacího jazyka expl3~\cite[kapitola~26]{latex2023interfaces}, která nám při volání funkcí umožní uvést pouze část nepovinných parametrů.
+Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít napojit naši fasádu na \TeX ová makra. Na rozdíl od jazyka Lua, ve kterém můžeme použít speciální prázdnou hodnotu \texttt{nil} pro nepovinné parametry, nemáme v jazyce \TeX{} přímočarý způsob, jak část parametrů funkce vynechat. Využijeme proto datový typ key--value programovacího jazyka expl3~\cite[kapitola~26]{latex2023interfaces}, která nám při volání funkcí umožní uvést pouze část nepovinných parametrů.
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-a.tex}
 \ifx \ExplSyntaxOn \undefined         % Načti programovací jazyk
@@ -1307,10 +1307,10 @@ válečníka a jeho meč se stal jeho nejcennějším jměním.
 \unskip\unskip\unskip\unskip\unskip\unskip
 \input tolkien-jmena-example-06
 
-\subsection{Bytosti v Cthulhu mýtu J.\ P.\ Lovecrafta}
+\subsection{Bytosti v Cthulhu mýtu H.\ P.\ Lovecrafta}
 \label{sec:cthulhu}
 
-Ve fanfikci z hororového světa amerického spisovatele J.\ P.\ Lovecrafta se nám může hodit generovat jména kosmických božstev, tzv. \emph{prastarých}.
+Ve fanfikci z hororového světa amerického spisovatele H.\ P.\ Lovecrafta se nám může hodit generovat jména kosmických božstev, tzv. \emph{prastarých}.
 %
 \begin{filecontents}[overwrite, nosearch, noheader]{lovecraft-jmena-prastarych-download.sh}
 wget -O- https://en.wikipedia.org/wiki/List_of_Great_Old_Ones |
@@ -1648,7 +1648,7 @@ assert(loadfile("randomnames-permuterm-example.lua"))()
 \end{luacode*}
 \catcode`\$=3
 
-Popsané problémy souvisí se zapomnětlivostí našeho jazykového modelu a nemají přímočaré řešení, tj. bez úprav našeho modelu nelze permutermíny použít. Budoucí práce by se měla zamšřit na popis a implementaci těchto úprav.
+Popsané problémy souvisí se zapomnětlivostí našeho jazykového modelu a nemají přímočaré řešení, tj. bez úprav našeho modelu nelze permutermíny použít. Budoucí práce by se měla zaměřit na popis a implementaci těchto úprav.
 
 \subsubsection{Regulární výrazy}
 Jedním způsobem, jak omezit vygenerované jméno, jsou regulární výrazy:
@@ -1680,7 +1680,7 @@ Pokud sestavíme pro zadaný regulární výraz nedeterministický konečný aut
 Jelikož je náš jazykový model také (pravděpodobnostní) konečný automat, který generuje regulární jazyky, mohli bychom podobné slepé uličky detekovat algoritmem, který zkontroluje, že regulární jazyk generovaný modelem a regulární jazyk akceptovaný automatem s aktuálním stavem nastaveným jako počátečním mají neprázdný průnik. Nejefektivnější známý algoritmus má ale exponenciální časovou složitost~\cite{rabin1959finite}, což ho pro naše potřeby činí nepraktickým. Jako praktické řešení se jeví shora omezit počet kroků modelu během náhodné procházky a počet opakovaných pokusů o náhodnou procházku.
 
 \subsection{Vyhlazování pravděpodobnosti}
-V sekci~\ref{sec:priklady} jsme pracovali s trénovacími množinami, které často obsahovaly jen malé desítky jmen. Jazykové modely trénované na těchto množinách jmen mají omezené schopnosti generalizace a nedokážou např. vygenerovat jména se znaky, které se neobjevily v trénovací množině. U mnoha jmen však známe dodatečné informace, kterými bychom mohli jazykové modely obohatit: Jména prastarých v Cthulhu mýtu J.\,P.\,Lovecrafta (vizte sekci~\ref{sec:cthulhu}) jsou psána v latinkové transkripci r'lyehštiny, která byla pravděpodobně inspirována psanou velštinou~\cite{novotny2020cthulhu} podobně jako jména v elfské sindarinštině~\cite{hooker2012welsh} (vizte sekci~\ref{sec:tolkien}). Anglická jména kapesních příšerek Pokémon (vizte sekci~\ref{sec:pokemon}) jsou často anglické složeniny, např. bublasaur = bulb (žárovka) + dinosaur a beedrill = bee (vosa) + drill (vrták)~\cite{creativeblogger2017pokemon}.
+V sekci~\ref{sec:priklady} jsme pracovali s trénovacími množinami, které často obsahovaly jen malé desítky jmen. Jazykové modely trénované na těchto množinách jmen mají omezené schopnosti generalizace a nedokážou např. vygenerovat jména se znaky, které se neobjevily v trénovací množině. U mnoha jmen však známe dodatečné informace, kterými bychom mohli jazykové modely obohatit: Jména prastarých v Cthulhu mýtu H.\,P.\,Lovecrafta (vizte sekci~\ref{sec:cthulhu}) jsou psána v latinkové transkripci r'lyehštiny, která byla pravděpodobně inspirována psanou velštinou~\cite{novotny2020cthulhu} podobně jako jména v elfské sindarinštině~\cite{hooker2012welsh} (vizte sekci~\ref{sec:tolkien}). Anglická jména kapesních příšerek Pokémon (vizte sekci~\ref{sec:pokemon}) jsou často anglické složeniny, např. bublasaur = bulb (žárovka) + dinosaur a beedrill = bee (vosa) + drill (vrták)~\cite{creativeblogger2017pokemon}.
 
 Jedním způsobem, jak zlepšit generalizační schopnosti našich modelů, je pomocí tzv. \emph{vyhlazování pravděpodobnosti} smíšením několika modelů. Pokud máme např. model sindarinštiny $M_{\text{s}}$ a model velštiny $M_{\text{v}}$, můžeme pro výpočet pravděpodobnosti slova $S$ využít lineární vyhlazování:
 \begin{equation}
@@ -1769,7 +1769,7 @@ Vygenerovaný text splňuje požadavky kladené na výplňový text: je nonsenso
 \section{Závěr}
 \label{sec:zaver}
 
-V tomto článku jsme si ukázali, jak můžeme pomocí jazykových modelů automaticky generovat jména postav při tvůrčím psaní v Lua\TeX u. Dále jsme vyvinuli jsme balíček, který je přístupný laickým uživatelům \LaTeX u, a zveřejnili jsme ho online~\cite{novotny2023napadovnik}. Nakonec jsme si rozebrali možná vylepšení našeho modelu další možné aplikace jazykových modelů. Článek názorně ukazuje vývoj \LaTeX ového balíčku, který kombinuje kód v \TeX u s kódem v jazyce Lua, a demonstruje možnosti využití jazykových modelů v \TeX u.
+V tomto článku jsme si ukázali, jak můžeme pomocí jazykových modelů automaticky generovat jména postav při tvůrčím psaní v Lua\TeX u. Dále jsme vyvinuli jsme balíček, který je přístupný laickým uživatelům \LaTeX u, a zveřejnili jsme ho online~\cite{novotny2023napadovnik}. Nakonec jsme si rozebrali možná vylepšení našeho modelu a další možné aplikace jazykových modelů v Lua\TeX u. Článek názorně ukazuje vývoj \LaTeX ového balíčku, který kombinuje kód v \TeX u s kódem v jazyce Lua, a demonstruje možnosti využití jazykových modelů v \TeX u.
 
 \begin{luacode*}
 os.execute("cat randomnames-model-01.lua randomnames-model-02.lua randomnames-random.lua randomnames-walk.lua randomnames-facade.lua randomnames-tail.lua > randomnames.lua")
@@ -1781,7 +1781,7 @@ os.execute("sed -r -i 's/\\s*%\\s*[^\\s].*$//' randomnames.tex randomnames.sty")
 \printbibliography
 
 \begin{summary}
-A famous dictum of the computer scientist Phil Karlton says that there are only two difficult things in computer science: cache invalidation and naming things. This is also true in creative writing, where authors have to come up not just with a story and a setting but also the names of all their fictional characters. In this article, we develop a language model in Lua\TeX, which allows authors to automatically generate names for their characters. Besides generating character names, we also discuss other uses of language models in Lua\TeX, namely the automatic switching of hyphenation patterns based on the current language and blind text generation. For the \TeX nically-minded users, the article acts as an introduction to the programming languages of Lua and expl3, and also the xparse \LaTeX{} package for defining document commands in \LaTeX.
+A famous dictum of the computer scientist Phil Karlton says that there are only two difficult things in computer science: cache invalidation and naming things. This is also true in creative writing, where authors have to come up not just with a story and a setting but also the names of all their fictional characters. In this article, we develop a language model in Lua\TeX, which allows authors to automatically generate names for their characters. Besides creative writing, we also discuss other uses of language models in Lua\TeX, namely the automatic switching of hyphenation patterns based on the current language and blind text generation. For the \TeX nically-minded users, the article acts as an introduction to the programming languages of Lua and expl3, and also the xparse \LaTeX{} package for defining document commands in \LaTeX.
 \keywords: creative writing, trie, language models, Lua\TeX, Lua, expl3, xparse
 \end{summary}
 \end{document}
