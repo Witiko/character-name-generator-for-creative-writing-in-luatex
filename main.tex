@@ -50,7 +50,20 @@
 \usepackage{minted}
 \usemintedstyle{bw}
 \setminted{firstnumber=last}
+\let\exampleoutput\emph
+\ifreviewversion\else
+  \let\oldequation=\equation
+  \def\equation{\oldequation\nonumber}%
+\fi
 \newcommand\marg[1]{\texttt{\{}#1\texttt{\}}}
+\makeatletter
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\@makefntext[1]{\leftskip=0pt\relax#1}%
+  \footnotetext{#1}%
+  \endgroup
+}
+\makeatother
 \ifshowcode
 \newcommand\vref[1]{\ref{#1} na straně~\pageref{#1}}
 \newcommand\myinputminted[3][]{%
@@ -100,12 +113,12 @@ os.execute("test -e declension.sty || wget https://raw.githubusercontent.com/xvr
 \begin{document}
 
 \selectlanguage{czech}
-\singlechars{czech}{VvSsZzKk}
+\singlechars{czech}{AaIiVvOoUuSsZzKk}
 
 \title{Nápadovník jmen pro tvůrčí psaní v Lua\TeX u}
 \EnglishTitle{Character Name Generator for Creative Writing in Lua\TeX}
-\author{Vít Novotný}
-\podpis{Vít Novotný, witiko@mail.muni.cz}
+\author{Vít Starý Novotný}
+\podpis{Vít Starý Novotný, witiko@mail.muni.cz}
 \maketitle[1ex]
 
 \begin{abstract}
@@ -115,7 +128,7 @@ Známý výrok informatika Phila Karltona nám říká, že na informatice jsou 
 
 \section*{Úvod}
 
-Se vzestupem aplikací postavených na velkých jazykových modelech od firmy OpenAI stoupá zájem laické veřejnosi o jazykové modelování. Nástroj ChatGPT na požádání napíše báseň, esej i dopis, připraví kód v programovacím jazyce, nebo zkontroluje jazykové a ortografické chyby v článku. Vyhledávač Bing provede automatické srovnání cen produktů na základě výsledků vyhledávání, zodpoví faktické dotazy včetně citace zdrojů a naplánuje dovolenou. Velké jazykové modely lze ale snadno zneužít pro hromadné generování desinformací a generování kódu pro napadení informačních systémů, což přitahuje pozornost regulátorů. Stejně tak jsou velké jazykové modely výpočetně náročné a dostupné pouze skrz placené webové rozhraní, což omezuje jejich využitelnost.
+Se vzestupem aplikací postavených na velkých jazykových modelech od firmy OpenAI stoupá zájem laické veřejnosti o jazykové modelování. Nástroj ChatGPT na požádání napíše báseň, esej i dopis, připraví kód v programovacím jazyce, nebo zkontroluje jazykové a ortografické chyby v článku. Vyhledávač Bing provede automatické srovnání cen produktů na základě výsledků vyhledávání, zodpoví faktické dotazy včetně citace zdrojů a naplánuje dovolenou. Velké jazykové modely lze ale snadno zneužít pro hromadné generování dezinformací a generování kódu pro napadení informačních systémů, což přitahuje pozornost regulátorů. Stejně tak jsou velké jazykové modely výpočetně náročné a dostupné pouze skrz placené webové rozhraní, což omezuje jejich využitelnost.
 
 V tomto článku se svezeme na vlně zájmu o jazykové modely a vyvineme si v jazyce Lua malý jazykový model, který můžeme snadno využít v dokumentech sázených pomocí Lua\TeX u. Náš jazykový model bude sloužit spisovatelům pro generování kreativních jmen postav při tvůrčím psaní, ale uvedeme si i další potenciální využití jazykových modelů v \TeX u, jako je automatické přepínání vzorů dělení slov podle aktuálního jazyka a generování výplňového textu pro přípravu maket.
 
@@ -138,11 +151,13 @@ Trie~\cite{knuth1997digital} je stromová datová struktura, pomocí které mů�
 \subsection{Základní jazykový model}
 Kromě asociativních polí můžeme trie využít pro implementaci textových množin s efektivním hledáním podle předpon, nebo přípon. Příkladem jsou klávesnice v mobilních telefonech, které uživateli našeptávají slova ze slovníku podle rozepsaného slova. Pokud si k hranám trie navíc poznačíme váhu $c$, která nám udává, kolikrát jsme hrany během sestavování trie navštívili, poslouží nám trie i jako jazykový model. Na Obrázku~\ref{fig:language-model-6} vidíme trii, pomocí které můžeme spočítat pravděpodobnost výskytu slova $S$ jako součin podmíněných pravděpodobností výskytů jednotlivých znaků slova a konce slova:
 \begin{equation}
-P(S) = \prod_{i = 1,\ldots,|S|} P(S[i]\mid S[1, \ldots, i-1])\cdot P(\epsilon\mid S).
+P(S) = \big(  \!\!\! \!\!\! \prod_{i = 1,\ldots,|S|} \!\!\!\! P(S[i]\mid S[1, \ldots, i-1]) \big)\cdot P(\epsilon\mid S),
+\text{ kde $\epsilon$ je prázdné slovo.}
 \end{equation}
-Pro výpočet podmíněné pravděpodobnosti znaku sestoupíme nejprve z počátečního vrcholu po znacích $S[\ldots, i-1]$ do vrcholu $v$. Následně zvolíme hranu $h$ z vrcholu $v$ se znakem $S[i]$. Pravděpodobnost spočítáme jako podíl váhy $c$ hrany $h$ vůči součtu vah všech hran $H$ vycházejících z vrcholu $v$:
+
+Pro výpočet podmíněné pravděpodobnosti znaku sestoupíme nejprve z počátečního vrcholu po znacích $S[1, \ldots, i-1]$ do vrcholu $v$. Následně zvolíme hranu $h$ z vrcholu $v$ se znakem $S[i]$. Pravděpodobnost spočítáme jako podíl váhy $c$ hrany $h$ vůči součtu vah všech hran $H$ vycházejících z vrcholu $v$:
 \begin{equation}
-P(S[i]\mid S[\ldots, i-1]) = \frac{c(e)}{\sum_{e'\in E} c(e')}.
+P(S[i]\mid S[1, \ldots, i-1]) = \frac{c(e)}{\sum_{e'\in E} c(e')}.
 \end{equation}
 Např. pravděpodobnost slova ,,pejsek`` spočítáme následovně:
 \begin{equation}
@@ -166,7 +181,7 @@ Slova můžeme také vybírat náhodnými procházkami na trii. Takto vypadá n�
 \begin{figure}[p]
 \centering
 \input figures/language-model-5-1
-\caption{Zapomnětlivé jazykové modely pro různé velikosti paměti $n$, které nám umožňují generovat nová slova a slovní spojení podobná jménům pohádkových psů. Tabulka vpravo uvádí všechny možné výstupy modelu a jejich pravěpodobnost.}
+\caption{Zapomnětlivé jazykové modely pro různé velikosti paměti $n$, které nám umožňují generovat nová slova a slovní spojení podobná jménům pohádkových psů. Tabulka vpravo uvádí všechny možné výstupy modelu a jejich pravděpodobnost.}
 \label{fig:language-model-5-1}
 \end{figure}
 
@@ -175,7 +190,7 @@ Náš jazykový model sice dokáže vygenerovat slova, pomocí kterých jsme ho 
 \begin{equation}
 P'(S) = \prod_{i = 1,\ldots,|S|} P\big(S[i]\mid S[i-n, \ldots, i-1]\big)\cdot P\big(\epsilon\mid S\big[|S|-n, \ldots, |S|\big]\big).
 \end{equation}
-Pro délky kontextu $n\geq 6$ obdržíme stejný jazykový model jako na Obrázku~\ref{fig:language-model-6}. Jazykové modely pro délky kontextu $0<n\leq 5$ najdeme na Obrázku~\ref{fig:language-model-5-1}. Při $n=4$ a $n=5$ dokáže jazykový model vymyslet nová slovní spojení ,,pes fík`` a ,,maxipes filipes``. Při $n=3$ dostáváme nové slovo ,,pes`` a v grafu nám vzniká cyklus mezi vrcholy $v_{21}$ a $v_{22}$, který s nízkou pravděpodobností generuje slovní spojení libovolné délky jako ,,maxipes filipes filipes fík`` s pravděpodobností $1{,}23\ \%$. Při $n=2$ dokážeme vygenerovat jména jako ,,maxipes filipejsek``, která obsahují nová odvozená slova. Při $n=1$ vznikají v modelu krátké cykly nad vrcholem $v_{33}$ a mezi vrcholy $v_{30}$ a $v_{31}$, díky kterým dokážeme vygenerovat nová jména s opakovanými slabikami jako ,,maxilipes fililipes fík`` a ,,peses filipejsejsek``.
+Pro délky kontextu $n\geq 6$ obdržíme stejný jazykový model jako na Obrázku~\ref{fig:language-model-6}. Jazykové modely pro délky kontextu $0<n\leq 5$ najdeme na Obrázku~\ref{fig:language-model-5-1}. Při $n=4$ a $n=5$ dokáže jazykový model vymyslet nová slovní spojení ,,pes fík`` a ,,maxipes filipes``. Při $n=3$ dostáváme nové slovo ,,pes`` a v grafu nám vzniká cyklus mezi vrcholy $v_{21}$ a $v_{22}$, který s nízkou pravděpodobností generuje slovní spojení libovolné délky jako ,,maxipes filipes filipes fík`` s pravděpodobností $1{,}\overline{234567901}\ \%$. Při $n=2$ dokážeme vygenerovat jména jako ,,maxipes filipejsek``, která obsahují nová odvozená slova. Při $n=1$ vznikají v modelu krátké cykly nad vrcholem $v_{33}$ a mezi vrcholy $v_{30}$ a $v_{31}$, díky kterým dokážeme vygenerovat nová jména s opakovanými slabikami jako ,,maxilipes fililipes fík`` a ,,peses filipejsejsek``.
 
 \subsection{Katzův couvající jazykový model}
 Při generování nových jmen můžeme náhodné procházky uvodit požadovanou předponou, nebo příponou. Při dlouhých kontextech ale bude mít většina předpon a přípon nulovou pravděpodobnost, zatímco při krátkých kontextech budou generovaná jména vypadat nahodile. Pokud chceme např. vygenerovat jméno pohádkového psa s předponou i-, selžeme pro všechny hodnoty $n\geq 2$ a při $n=1$ získáme nepravděpodobná jména jako ,,ipek`` a ,,ililipejejs``.
@@ -185,9 +200,9 @@ Možným řešením popsaného problému je Katzův jazykový model~\cite{katz19
 \section{Implementace jazykového modelu}
 \label{sec:implementace}
 
-V této sekci rozpracujeme soubor \texttt{randomnames.lua}, který bude obsahovat implementaci našeho jazykového modelu v jazyce Lua. Nejprve se v sekci~\ref{sec:implementace-model} zaměříme na sestavení modelu. Následně si v sekci~\vref{sec:implementace-random} uděláme malou odbočku a naprogramujeme si vlastní generátor pseudonáhodných čísel, abychom mohli nakonec v sekci~\vref{sec:implementace-walk} implementovat (pseudo)náhodné procházky na našem modelu.
+V této sekci rozpracujeme soubor \texttt{randomnames.lua}, který bude obsahovat implementaci našeho jazykového modelu v jazyce Lua. Nejprve se v sekci~\ref{sec:implementace-model} zaměříme na sestavení modelu. Následně si v sekci~\vref{sec:implementace-random} uděláme malou odbočku a naprogramujeme si vlastní generátor pseudonáhodných čísel, abychom mohli nakonec v sekci~\vref{sec:implementace-walk} implementovat (pseudo)náhodné procházky na našem modelu. Hotový soubor \texttt{randomnames.lua} si můžeme stáhnout online~\cite{novotny2023napadovnik}.
 
-Příklady z této sekce uvozené dosavadním obsahem souboru \texttt{randomnames.lua} si můžete vždy uložit do textového souboru \texttt{priklad.lua} a přeložit příkazem \texttt{texlua\textvisiblespace priklad.lua}.
+Příklady z této sekce uvozené dosavadním obsahem souboru \texttt{randomnames.lua} si můžete vždy uložit do textového souboru \texttt{priklad.lua} a přeložit příkazem \texttt{texlua priklad.lua}.
 
 \subsection{Sestavení jazykového modelu}
 \label{sec:implementace-model}
@@ -212,7 +227,11 @@ function ForgetfulModel.new(context_size)
 end
 
 local function trim_context(context,           -- Ořízni kontext
-                            max_context_size)  -- na danou délku.
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-model-01d.lua}
+                            max_context_size)  -- na danou délku.\footnotemark
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-model-01e.lua}
   local context_size = utf8.len(context)
   if context_size > max_context_size then
     local character_offset = context_size - max_context_size + 1
@@ -282,10 +301,13 @@ end
 \myinputminted[texcomments]{lua}{randomnames-model-01b.lua}
 \footnotetext{Jazyk Lua používá tzv. \emph{prototypální dědičnost} pomocí \emph{metatabulek}~\cite[sekce~20.4]{ierusalimschy2016lua}, která je obecnější než třídní dědičnost, kterou známe z objektově orientovaných jazyků, jako jsou C++ a Java. Zde jsme vytvořili prázdnou hašovou tabulku \texttt{model} s metatabulkou \texttt{\{ \_\_index = ForgetfulModel \}}, která říká, že při přístupu k \texttt{model}u se mají neznámé klíče hledat v hašové tabulce \texttt{ForgetfulModel}. Toto nám umožňuje volat metody jako \texttt{model.add\_name(model, name)} nebo krátce \texttt{model:add\_name(name)}.\ifreviewversion\ \emph{Poznámka pro recenzenty: Pokud při čtení kódu narazíte na další atypické konstrukce, které si žádají komentář, budu rád, když mi o nich napíšete.}\fi}
 \myinputminted{lua}{randomnames-model-01c.lua}
+\myinputminted[texcomments]{lua}{randomnames-model-01d.lua}
+\footnotetext{Unární operátor mřížky (\texttt{\#}) v jazyce Lua vrací délku pole nebo textového řetězce.}
+\myinputminted{lua}{randomnames-model-01e.lua}
 \end{mintedblock}
 
 \begin{luacode*}
-os.execute("cat randomnames-model-01a.lua randomnames-model-01b.lua randomnames-model-01c.lua > randomnames-model-01.lua")
+os.execute("cat randomnames-model-01a.lua randomnames-model-01b.lua randomnames-model-01c.lua randomnames-model-01d.lua randomnames-model-01e.lua > randomnames-model-01.lua")
 \end{luacode*}
 
 Katzův couvající jazykový model sestavíme ze zapomnětlivých modelů pro délky kontextu $n=i, i+1, \ldots, j-1, j$, kde hraniční hodnoty $i, j$ zadává uživatel.
@@ -369,14 +391,14 @@ assert(loadfile("randomnames-model-example.lua"))()
 \subsection{Generátor pseudonáhodných čísel}
 \label{sec:implementace-random}
 
-Pro náhodné procházky na jazykovém modelu potřebujeme hrací kostku, která nám řekne, po které hraně grafu se máme vydat. Jazyk Lua poskytuje vestavěný generátor pseudonáhodných čísel, který má ale několik slabin: Pro generování čísel slouží funkce \texttt{math.random()}, která ale generuje různá čísla na různých platformách. My ale chceme, aby náš model generoval stejná náhodná jména na všech aktuálních \TeX u. Pro resetování vestavěného generátoru pomocí náhodného semínka slouží funkce \texttt{math.randomseed()}. My ale chceme současně používat několik jazykových modelů s vzájemně nezávislými generátory. Uvedené problémy vyřešíme implementací vlastního generátoru pseudonáhodných čísel.
+Pro náhodné procházky na jazykovém modelu potřebujeme hrací kostku, která nám řekne, po které hraně grafu se máme vydat. Jazyk Lua poskytuje vestavěný generátor pseudonáhodných čísel, který má ale několik slabin: Pro generování čísel slouží funkce \texttt{math.random()}, která ale generuje různá čísla na různých platformách. My ale chceme, aby náš model generoval stejná náhodná jména na všech aktuálních instalacích \TeX u. Pro resetování vestavěného generátoru pomocí náhodného semínka slouží funkce \texttt{math.randomseed()}. My ale chceme současně používat několik jazykových modelů se vzájemně nezávislými generátory. Uvedené problémy vyřešíme implementací vlastního generátoru pseudonáhodných čísel.
 
 Jazyk Lua 5.3 používá alespoň 32bitová celá čísla se znaménkem a neurčitou endianitou~\cite[sekce~2.1]{ierusalimschy2020lua}. Pro nezávislost na platformě tedy musíme zvolit algoritmus, který nepoužívá bitové operace ani jinak nezávisí na endianitě a který pracuje pouze s čísly v rozmezí od 0 do $2^{31} - 1$. Takovým algoritmem je například multiplikativní lineární kongruenční generátor \cite[sekce~7.1]{press2007numerical}:
 \begin{equation}
 x_n = a\cdot x_{n-1}\pmod{m},
 \end{equation}
-kde $x_1\neq0\pmod{m}$ je náhodné semínko, $x_n$ je $n$-té pseudonáhodné číslo a $a, m$ jsou tabulkové hodnoty.
-Pro dosažení nezávislosti na platformě požadujeme, aby součin $a\cdot x_{n-1}$ nepřesáhl hodnotu $2^{31} - 1$. Toho dosáhneme vhodným výběrem hodnot $a = 771\,645\,345, m = 2^{30} - 35 = 1\,073\,741\,789$~\cite[tabulka~2]{l1999tables}, omezením semínka na hodnoty od 1 do $m - 1$ a použitím algoritmu pro modulární násobení.
+kde $x_1\neq0\pmod{m}$ je náhodné semínko, $x_n$ je $n$-té pseudonáhodné číslo a $a$, $m$ jsou tabulkové hodnoty.
+Pro dosažení nezávislosti na platformě požadujeme, aby mezivýsledky nepřesáhly hodnotu $2^{31} - 1$. Toho dosáhneme vhodným výběrem hodnot $a = 771\,645\,345$, $m = 2^{30} - 35 = 1\,073\,741\,789$~\cite[tabulka~2]{l1999tables}, omezením semínka na hodnoty od 1 do $m - 1$ a použitím algoritmu pro modulární násobení.
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random.lua}
 local Random = { A = 771645345, M = 1073741789 }
@@ -400,7 +422,7 @@ local function multiply_modulo(a, x, m)
     a = (a * 2) % m
     x = x // 2
   end
-  return result % m
+  return result
 end
 
 function Random.get_next_number(random, from, to)
@@ -420,9 +442,9 @@ Generátor můžeme v Lua\TeX u použít následně:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-example.lua}
 random = Random.new(42)        -- Vytvoř generátor se semínkem 42.
-for i = 1, 32 do               -- Vypiš 32 hodů 6stěnnou kostkou.
+for i = 1, 30 do               -- Vypiš 30 hodů 6stěnnou kostkou.
   tex.sprint(random:get_next_number(1, 6))
-  if i < 32 then tex.sprint(", ") end
+  if i < 30 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-random-example.lua}
@@ -432,8 +454,8 @@ end
 os.execute("cat randomnames-random.lua > randomnames-random-example-helper.lua")
 os.execute("echo return {multiply_modulo, Random} >> randomnames-random-example-helper.lua")
 multiply_modulo, Random = table.unpack(require("randomnames-random-example-helper"))
-assert(loadfile("randomnames-random-example.lua"))()
 \end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-random-example.lua"))()}}
 
 \subsection{Náhodné procházky}
 \label{sec:implementace-walk}
@@ -516,10 +538,10 @@ end
 Náhodné procházky provedeme v Lua\TeX u následně:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-01.lua}
-for i = 1, 2 do -- Vypiš výsledky 2 procházek s předponou pe- se
+for i = 1, 5 do -- Vypiš výsledky 5 procházek s předponou pe- se
   tex.sprint(   -- zapomnětlivým modelem s délkou kontextu 6.
     model:take_random_walk("forward", "pe", random, 6, 6))
-  if i < 2 then tex.sprint(", ") end
+  if i < 5 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-01.lua}
@@ -527,50 +549,44 @@ end
 \noindent
 \begin{luacode*}
 assert(loadfile("randomnames-walk.lua"))()
-assert(loadfile("randomnames-walk-example-01.lua"))()
 \end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-01.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-02.lua}
-for i = 1, 2 do -- Vypiš výsledky 2 procházek s příponou -k se
+for i = 1, 5 do -- Vypiš výsledky 5 procházek s příponou -k se
   tex.sprint(   -- zapomnětlivým modelem s délkou kontextu 6.
     model:take_random_walk("reverse", "k", random, 6, 6))
-  if i < 2 then tex.sprint(", ") end
+  if i < 5 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-02.lua}
 
 \noindent
-\begin{luacode*}
-assert(loadfile("randomnames-walk-example-02.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-02.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-03.lua}
-for i = 1, 11 do -- Vypiš výsledky 11 procházek bez afixu se
+for i = 1, 10 do -- Vypiš výsledky 10 procházek bez afixu se
   tex.sprint(    -- zapomnětlivým modelem s délkou kontextu 3.
     model:take_random_walk("forward", "", random, 3, 3))
-  if i < 11 then tex.sprint(", ") end
+  if i < 10 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-03.lua}
 
 \noindent
-\begin{luacode*}
-assert(loadfile("randomnames-walk-example-03.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-03.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-04.lua}
-for i = 1, 11 do -- Vypiš výsledky 11 procházek bez afixu se
+for i = 1, 10 do -- Vypiš výsledky 10 procházek bez afixu se
   tex.sprint(    -- zapomnětlivým modelem s délkou kontextu 2.
     model:take_random_walk("forward", "", random, 2, 2))
-  if i < 11 then tex.sprint(", ") end
+  if i < 10 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-04.lua}
 
 \noindent
-\begin{luacode*}
-assert(loadfile("randomnames-walk-example-04.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-04.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-05.lua}
 for i = 1, 10 do -- Vypiš výsledky 10 procházek bez afixu se
@@ -582,9 +598,7 @@ end
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-05.lua}
 
 \noindent
-\begin{luacode*}
-assert(loadfile("randomnames-walk-example-05.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-05.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-06.lua}
 for i = 1, 10 do -- Vypiš výsledky 10 procházek s předponou i- nad
@@ -596,14 +610,12 @@ end
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-06.lua}
 
 \noindent
-\begin{luacode*}
-assert(loadfile("randomnames-walk-example-06.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-06.lua"))()}}
 
 \section{Uživatelské rozhraní pro vkládání jmen do dokumentů}
 \label{sec:rozhrani}
 
-V této sekci ukončíme soubor \texttt{randomnames.lua} a vytvoříme dva nové soubory \texttt{randomnames.tex} a \texttt{randomnames.sty}, které budou obsahovat uživatelské rozhraní pro snadné využití našeho jazykového modelu v \LaTeX ových dokumentech.
+V této sekci ukončíme soubor \texttt{randomnames.lua} a vytvoříme dva nové soubory \texttt{randomnames.tex} a \texttt{randomnames.sty}, které budou obsahovat uživatelské rozhraní pro snadné využití našeho jazykového modelu v \LaTeX ových dokumentech. Hotové soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty} si můžeme stáhnout online~\cite{novotny2023napadovnik}.
 
 Nejprve v sekci~\ref{sec:rozhrani-fasada} doplníme do souboru \texttt{randomnames.lua} fasádu, která poslouží jako programátorské rozhraní pro naši implementaci v jazyce Lua. Následně v sekci~\vref{sec:rozhrani-premosteni} vytvoříme soubor \texttt{randomnames.tex} s přemostěním mezi Luou a \TeX em pomocí programovacího jazyka expl3. Nakonec v sekci~\vref{sec:rozhrani-xparse} vytvoříme soubor \texttt{randomnames.sty} s uživatelským rozhraním pro snadné využití našeho jazykového modelu v \LaTeX ových dokumentech.
 
@@ -618,7 +630,7 @@ local randomnames = {}      -- Veřejné rozhraní našeho Lua modulu.
 local models = {}           -- Vytvoř prázdnou databázi modelů.
 local randoms = {}          -- a generátorů pseudonáhodných čísel.
 
-local function hash(name)   -- Vypočti ze jména modelu náhodné
+local function hash(name)   -- Vypočti ze jména modelu počáteční
   local result = 0          -- semínko s hašovací funkcí sdbm.
   local modulus = Random.M - 2
   for _, code in utf8.codes(name) do
@@ -632,7 +644,7 @@ function randomnames.new_model(name, min_context_size,
                                max_context_size, seed)
   assert(models[name] == nil,
          [[Model named "]] .. name .. [[" already exists]])
-  min_context_size =        -- Pokud uživatel nezadal minimální
+  min_context_size =        -- Pokud uživatel nedodal minimální
     min_context_size or 1   -- nebo maximální délku kontextu,
   max_context_size =        -- použij výchozí hodnoty 1 a 3.
     max_context_size or 3
@@ -673,9 +685,9 @@ function randomnames.take_random_walk(name, graph_type,
                                       max_context_size)
   local model =             -- Načti z databáze model.
     get_model(name)
-  graph_type = graph_type   -- Pokud uživatel neudodal směr
+  graph_type = graph_type   -- Pokud uživatel nedodal směr
             or "forward"    -- procházky, jdi zepředu.
-  affix = affix             -- Pokud uživatel nezadal předponu
+  affix = affix             -- Pokud uživatel nedodal předponu
         or ""               -- ani příponu, použij prázdnou.
   local random              -- Pokud uživatel nedodal náhodné
   if seed == nil then       -- semínko, načti z databáze
@@ -718,7 +730,9 @@ tex.print(randomnames.take_random_walk("pes"))  -- Vygeneruj jméno.
 os.execute("cat randomnames-facade.lua > randomnames-facade-example-helper.lua")
 os.execute("echo return {randomnames, models, randoms} >> randomnames-facade-example-helper.lua")
 randomnames, models, randoms = table.unpack(require("randomnames-facade-example-helper"))
-assert(loadfile("randomnames-facade-example.lua"))()
+\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-facade-example.lua"))()}}
+\begin{luacode*}
 models.pes = nil
 randoms.pes = nil
 \end{luacode*}
@@ -751,7 +765,7 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-a.tex}
 \ifx \ExplSyntaxOn \undefined         % Načti programovací jazyk
-  \input expl3-generic\relax          % expl3 do plain TeXu.
+  \input expl3-generic                % expl3 do plain TeXu.
 \fi
 \ExplSyntaxOn                
 
@@ -784,7 +798,7 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
           { tonumber(" \lua_escape:e { #1 } ") }
       },
     context_size .meta:n =            % Umožni snadno vytvářet
-      {                               % zapomnětlivé modely,
+      {                               % zapomnětlivé modely
         min_context_size = { #1 },    % s pevnou délkou kontextu,
         max_context_size = { #1 },    % které nemohou couvat.
       },
@@ -806,6 +820,8 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
     \lua_now:e                        % Zavolej funkci
       {                               % `randomnames.new_model()`
         local~randomnames =           % v jazyce Lua.
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-d.tex}
           require("randomnames")
         randomnames.new_model(
           " \lua_escape:e { #2 } ",
@@ -852,7 +868,7 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
 \tl_gset:Nn \l_randomnames_graph_type_tl { nil }
 \tl_gset:Nn \l_randomnames_affix_tl { nil }
 
-\bool_new:N                           % Vytvoř proměnné pomocí
+\bool_new:N                           % Vytvoř proměnné, pomocí
   \l_randomnames_save_bool            % kterých bude uživatel moci
 \bool_gset_false:N                    % ukládat jména, která
   \l_randomnames_save_bool            % využívá opakovaně.
@@ -907,9 +923,9 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
         take_random_walk
       }
       { #1 }
-    \lua_now:e                        % Zavolej funkci
-      {                               % `randomnames.take_random
-        local~randomnames =           % walk()` v jazyce Lua.
+    \lua_now:e                     % Zavolej funkci `randomnames.
+      {                            % take_random_walk()`
+        local~randomnames =        % v jazyce Lua.
           require("randomnames")
         local~result = randomnames.take_random_walk(
           " \lua_escape:e { #2 } ",
@@ -961,16 +977,18 @@ Náhodné~semínko~je:~
 \myinputminted[texcomments]{tex}{randomnames-b.tex}
 \footnotetext{V programovacím jazyku expl3 můžeme s datovým typem key--value nakládat dvěma způsoby. Mějme např. key--value \texttt{\{ min\_context\_size = 3, seed = 42 \}}. Tento key--value můžeme uložit do hašové tabulky~\cite[kapitola~24]{latex2023interfaces} a následně přistupovat k hodnotám jednotlivých klíčů: \myinputminted[linenos=false]{tex}{key-value-example-01.tex} \noindent Alternativně můžeme vytvořit datovou sběrnici~\cite[kapitola~26]{latex2023interfaces}, u které nejprve nastavíme způsob zpracování hodnot jednotlivých klíčů a následně do ní náš key--value vpustíme: \myinputminted[linenos=false]{tex}{key-value-example-02.tex} \noindent Oba příklady vypíšou text ,,Náhodné semínko je 42.``. V našem přemostění používáme druhý popsaný způsob s datovou sběrnicí.}
 \myinputminted{tex}{randomnames-c.tex}
+\blfootnote{Znak vlnky (\texttt{\textasciitilde}) v jazyce expl3 vkládá mezeru, která nám v kódu v jazyce Lua odděluje klíčové slovo \texttt{local} od názvu proměnné \texttt{randomnames}. Pokud bychom vlnku neuvedli, definovali bychom místo lokální proměnné \texttt{randomnames} globální proměnnou \texttt{localrandomnames}.}
+\myinputminted{tex}{randomnames-d.tex}
 \end{mintedblock}
 
 \begin{luacode*}
-os.execute("cat randomnames-a.tex randomnames-b.tex randomnames-c.tex > randomnames.tex")
+os.execute("cat randomnames-a.tex randomnames-b.tex randomnames-c.tex randomnames-d.tex > randomnames.tex")
 \end{luacode*}
 
 Pomocí našeho přemostění vytvoříme Katzův couvající jazykový model a provedeme na něm náhodnou procházku v plain Lua\TeX u následně:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-plain-example-01.tex}
-\input randomnames\relax                          % Načti naše
+\input randomnames                                % Načti naše
 \ExplSyntaxOn                                     % přemostění.
 \randomnames_new_model:nn                         % Vytvoř model.
   {
@@ -994,8 +1012,8 @@ Pomocí našeho přemostění vytvoříme Katzův couvající jazykový model a 
 \end{mintedblock}
 
 \noindent
-\ExplSyntaxOn
 \input randomnames-plain-example-01
+\ExplSyntaxOn
 \cs_new:Npn
   \helperTakeRandomWalk
   #1#2
@@ -1005,7 +1023,7 @@ Pomocí našeho přemostění vytvoříme Katzův couvající jazykový model a 
       { #2 }
   }
 \ExplSyntaxOff
-\helperTakeRandomWalk{}{pes}
+\exampleoutput{\helperTakeRandomWalk{}{pes}}
 
 \begin{luacode*}
 models.pes = nil
@@ -1022,9 +1040,9 @@ Programovací jazyk expl3 má pro uživatele \TeX u poměrně neobvyklou syntax.
 
 \ProvidesExplPackage
   {randomnames}%
-  {2023-05-01}%
-  {1.0.0}%
-  {Character name generators for creative writing in TeX}
+  {2023-06-07}%
+  {1.0.1}%
+  {Character name generators for creative writing in LuaLaTeX}
 
 \RequirePackage{xparse}               % Načti balíček xparse.
 
@@ -1110,13 +1128,13 @@ Pomocí našeho uživatelského rozhraní příkazů vytvoříme Katzův couvaj�
 \ExplSyntaxOff
 \input randomnames-latex-example-02
 \unskip\unskip\unskip\unskip
-\input randomnames-latex-example-04
+\exampleoutput{\input randomnames-latex-example-04}
 
 \section{Příklady užití}
 \label{sec:priklady}
 V této sekci si stáhneme několik příkladových databází jmen, natrénujeme na nich náš model a ukážeme si, jak bychom vygenerovali jména postav a zahrnuli je do textu povídky.
 
-Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžete uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex\textvisiblespace priklad.tex}. Pro úspěšný překlad si stáhneme do pracovního adresáře také soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
+Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžete uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex priklad.tex}. Pro úspěšný překlad si stáhneme do pracovního adresáře také soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
 
 \subsection{Soudobá křestní jména}
 \label{sec:krestni-jmena}
@@ -1186,7 +1204,7 @@ nikdy nebudou chtít rozloučit.
 \noindent
 \input krestni-jmena-example-02
 \unskip\unskip\unskip\unskip
-\input krestni-jmena-example-04
+\exampleoutput{\input krestni-jmena-example-04}
 
 V našem příkladu jsme použili výchozí maximální délku kontextu 3, abychom modely pobídli k vyšší kreativitě. Už s délkou kontextu 6 bychom ale dokázali vygenerovat 23 nových přesvědčivých jmen, která nebyla součástí množiny trénovacích jmen z webu rodina.cz: Adalbertina, Adalbertýna, Budimíra, Budislava, Erharda, Fridolína, Gvendolín, Jarolína, Jonathanael, Karolím, Karolíma, Klementýn, Mojmíra, Mstislava, Něhoslava, Stanimíra, Stojmíra, Svatomíra, Tichomíra, Velimíra, Vítoslava, Věslav a Šebastian.
 
@@ -1275,7 +1293,7 @@ luk, zatímco člověk \randomname{clovek} divoce máchal mečem.
 \noindent
 \input tolkien-jmena-example-02
 \unskip\unskip\unskip\unskip\unskip\unskip
-\input tolkien-jmena-example-04
+\exampleoutput{\input tolkien-jmena-example-04}
 
 Pokud neuvedeme náhodné semínko, každé použití příkazu \verb|\randomname|
 vygeneruje nové jméno. Pro zachování vygenerovaných jmen můžeme použít
@@ -1294,18 +1312,22 @@ randoms.clovek = nil
 \randomname[save=Žoldnéř]{clovek} vyrostl v bohaté obchodnické
 rodině. Když však jeho otec zesnul a rodinné jmění zpustlo,
 \Žoldnéř\ se stal dobrodruhem a nechal se najímat jako žoldnéř.
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-example-07.tex}
 Během svých dobrodružství si \Žoldnéř\ vydobyl pověst neohroženého
 válečníka a jeho meč se stal jeho nejcennějším jměním.
 \end{filecontents}
 
 \begin{mintedblock}
 \myinputminted[linenos=false]{tex}{tolkien-jmena-example-06.tex}
+\blfootnote{Vstupní procesor Lua\TeX u zná Unicode a můžeme tedy psát příkazy s diakritikou jako \texttt{\textbackslash Žoldnéř}.}
+\myinputminted[linenos=false]{tex}{tolkien-jmena-example-07.tex}
 \end{mintedblock}
 
 \noindent
 \input tolkien-jmena-example-02
 \unskip\unskip\unskip\unskip\unskip\unskip
-\input tolkien-jmena-example-06
+\exampleoutput{\input tolkien-jmena-example-06 \input tolkien-jmena-example-06}
 
 \subsection{Bytosti v Cthulhu mýtu H.\ P.\ Lovecrafta}
 \label{sec:cthulhu}
@@ -1366,7 +1388,7 @@ vyslovit lidskými ústy, se brzy objevil a jeho oči temně zářily.
 \noindent
 \input lovecraft-jmena-prastarych-example-02
 \unskip\unskip\unskip\unskip
-\input lovecraft-jmena-prastarych-example-04
+\exampleoutput{\input lovecraft-jmena-prastarych-example-04}
 
 \subsection{Kouzla ve světě Harryho Pottera}
 Ve fanfikci ze světa Harryho Pottera se nám může hodit generovat nová jména kouzel.
@@ -1426,7 +1448,7 @@ okamžitě sebou trhl a rozběhl se k němu s otevřenou tlamou.
 \noindent
 \input harry-potter-kouzla-example-02
 \unskip\unskip\unskip\unskip
-\input harry-potter-kouzla-example-04
+\exampleoutput{\input harry-potter-kouzla-example-04}
 
 \subsection{Kapesní příšerky Pokémon}
 \label{sec:pokemon}
@@ -1488,7 +1510,7 @@ trenér věděl, že musí být vždy připraven na nečekané situace.
 \noindent
 \input jmena-pokemonu-example-02
 \unskip\unskip\unskip\unskip
-\input jmena-pokemonu-example-04
+\exampleoutput{\input jmena-pokemonu-example-04}
 
 \section{Budoucí práce}
 \label{sec:budouci-prace}
@@ -1518,7 +1540,7 @@ Tereza Vrabcová~\cite{vrabcova2023model} navrhla následující algoritmus sklo
 \end{enumerate}
 
 \noindent
-Pro vyzkoušení algoritmu stáhneme do pracovního adresáře soubory \texttt{get\_data.py}, \texttt{requirements.txt}, \texttt{declension.lua}, \texttt{declension.tex} a \texttt{declension,sty}~\cite{vrabcova2023model}. Následně si stáhneme z webu rodina.cz česká křestní jména podle pokynů v sekci~\ref{sec:krestni-jmena} na straně~\pageref{sec:krestni-jmena}. Dále si pomocí skriptu \texttt{get\_data.py} stáhneme skloňování jmen:
+Pro vyzkoušení algoritmu stáhneme do pracovního adresáře soubory \texttt{get\_data.py}, \texttt{requirements.txt}, \texttt{declension.lua}, \texttt{declension.tex} a \texttt{declension.sty}~\cite{vrabcova2023model}. Následně si stáhneme z webu rodina.cz česká křestní jména podle pokynů v sekci~\ref{sec:krestni-jmena} na straně~\pageref{sec:krestni-jmena}. Dále si pomocí skriptu \texttt{get\_data.py} stáhneme skloňování jmen:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-pip-install.sh}
 python3 -m pip install -r requirements.txt
@@ -1607,7 +1629,7 @@ models.muz = nil
 \input sklonovani-example-04
 \unskip\unskip\unskip\unskip
 \unskip\unskip\unskip\unskip
-\input sklonovani-example-06
+\exampleoutput{\input sklonovani-example-06}
 
 Popsaný algoritmus funguje pouze pro česká jména a hledání jména s nejpodobnější koncovkou má lineární časovou složitost ve velikosti trénovací množiny. Budoucí práce by se měla zaměřit na rozšíření algoritmu o další flektivní jazyky jako slovenštiny a použít datovou strukturu jako trie pro efektivní hledání trénovacích jmen s nejdelší společnou koncovkou.
 
@@ -1643,9 +1665,7 @@ tex.print(name)
 
 \noindent
 \catcode`\$=12
-\begin{luacode*}
-assert(loadfile("randomnames-permuterm-example.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-permuterm-example.lua"))()}}
 \catcode`\$=3
 
 Popsané problémy souvisí se zapomnětlivostí našeho jazykového modelu a nemají přímočaré řešení, tj. bez úprav našeho modelu nelze permutermíny použít. Budoucí práce by se měla zaměřit na popis a implementaci těchto úprav.
@@ -1665,9 +1685,7 @@ tex.print(name)
 \myinputminted[linenos=false]{lua}{randomnames-regex-example.lua}
 
 \noindent
-\begin{luacode*}
-assert(loadfile("randomnames-regex-example.lua"))()
-\end{luacode*}
+\exampleoutput{\directlua{assert(loadfile("randomnames-regex-example.lua"))()}}
 
 \begin{luacode*}
 models.pes = nil
@@ -1680,13 +1698,13 @@ Pokud sestavíme pro zadaný regulární výraz nedeterministický konečný aut
 Jelikož je náš jazykový model také (pravděpodobnostní) konečný automat, který generuje regulární jazyky, mohli bychom podobné slepé uličky detekovat algoritmem, který zkontroluje, že regulární jazyk generovaný modelem a regulární jazyk akceptovaný automatem s aktuálním stavem nastaveným jako počátečním mají neprázdný průnik. Nejefektivnější známý algoritmus má ale exponenciální časovou složitost~\cite{rabin1959finite}, což ho pro naše potřeby činí nepraktickým. Jako praktické řešení se jeví shora omezit počet kroků modelu během náhodné procházky a počet opakovaných pokusů o náhodnou procházku.
 
 \subsection{Vyhlazování pravděpodobnosti}
-V sekci~\ref{sec:priklady} jsme pracovali s trénovacími množinami, které často obsahovaly jen malé desítky jmen. Jazykové modely trénované na těchto množinách jmen mají omezené schopnosti generalizace a nedokážou např. vygenerovat jména se znaky, které se neobjevily v trénovací množině. U mnoha jmen však známe dodatečné informace, kterými bychom mohli jazykové modely obohatit: Jména prastarých v Cthulhu mýtu H.\,P.\,Lovecrafta (vizte sekci~\ref{sec:cthulhu}) jsou psána v latinkové transkripci r'lyehštiny, která byla pravděpodobně inspirována psanou velštinou~\cite{novotny2020cthulhu} podobně jako jména v elfské sindarinštině~\cite{hooker2012welsh} (vizte sekci~\ref{sec:tolkien}). Anglická jména kapesních příšerek Pokémon (vizte sekci~\ref{sec:pokemon}) jsou často anglické složeniny, např. bublasaur = bulb (žárovka) + dinosaur a beedrill = bee (vosa) + drill (vrták)~\cite{creativeblogger2017pokemon}.
+V sekci~\ref{sec:priklady} jsme pracovali s trénovacími množinami, které často obsahovaly jen malé desítky jmen. Jazykové modely trénované na těchto množinách jmen mají omezené schopnosti generalizace a nedokážou např. vygenerovat jména se znaky, které se neobjevily v trénovací množině. U mnoha jmen však známe dodatečné informace, kterými bychom mohli jazykové modely obohatit: Jména prastarých v Cthulhu mýtu H.\,P.\,Lovecrafta (vizte sekci~\ref{sec:cthulhu}) jsou psána v latinkové transkripci r'lyehštiny, která byla pravděpodobně inspirována psanou velštinou~\cite{novotny2020cthulhu} podobně jako jména v elfské sindarinštině~\cite{hooker2012welsh} (vizte sekci~\ref{sec:tolkien}). Anglická jména kapesních příšerek Pokémon (vizte sekci~\ref{sec:pokemon}) jsou často anglické složeniny, např. bulbasaur = bulb (žárovka) + dinosaur a beedrill = bee (včela) + drill (vrták)~\cite{creativeblogger2017pokemon}.
 
-Jedním způsobem, jak zlepšit generalizační schopnosti našich modelů, je pomocí tzv. \emph{vyhlazování pravděpodobnosti} smíšením několika modelů. Pokud máme např. model sindarinštiny $M_{\text{s}}$ a model velštiny $M_{\text{v}}$, můžeme pro výpočet pravděpodobnosti slova $S$ využít lineární vyhlazování:
+Jedním způsobem, jak zlepšit generalizační schopnosti našich modelů, je pomocí tzv. \emph{vyhlazování pravděpodobnosti} smíšením několika modelů. Pokud máme např. model sindarinštiny $M_{\text{s}}$ a model velštiny $M_{\text{v}}$, můžeme pro výpočet pravděpodobnosti dalšího znaku $S[i]$ použít lineární vyhlazování:
 \begin{equation}
-P(S) = \lambda\cdot P(S; M_{\text{s}}) + (1-\lambda)\cdot P(S; M_{\text{v}}),
+P\big(S[i]\mid k\big) = \lambda\cdot P\big(S[i]\mid k; M_{\text{s}}\big) + (1-\lambda)\cdot \big(S[i]\mid k ; M_{\text{v}}\big),
 \end{equation}
-kde $\lambda$ je relativní váha sindarinštiny oproti velštině. Díky velké trénovací množině pro velštinu bude výsledný model schopný lépe generalizovat mimo trénovací množinu pro sindarinštinu a generovat kreativní nová jména.
+kde $k = S[i-n,\ldots,i-1]$ je kontext posledních $n$ znaků a $\lambda$ je relativní váha sindarinštiny oproti velštině. Díky velké trénovací množině pro velštinu bude výsledný model schopný lépe generalizovat mimo trénovací množinu pro sindarinštinu a generovat kreativní nová jména.
 
 \subsection{Možné aplikace jazykových modelů v \TeX u}
 V tomto článku jsme se zaměřili využití na jazykových modelů pro generování jmen postav, což je zajímavá ale okrajová aplikace jazykových modelů. Vzhledem k tematickému zaměření Zpravodaje \CSTUG u by mohlo čtenáře zajímat, jakým způsobem mohou jazykové modely pomoci nejen autorovi textu, ale také sazeči.
@@ -1762,14 +1780,14 @@ Následně sestavíme model vět o psech a použijeme ho k vygenerování odstav
 \noindent
 \input karel-capek-dasenka-example-02
 \unskip\unskip\unskip\unskip
-\input karel-capek-dasenka-example-04
+\exampleoutput{\input karel-capek-dasenka-example-04}
 
 Vygenerovaný text splňuje požadavky kladené na výplňový text: je nonsensový, ale zachovává charakter trénovacích vět do té míry, že je dobře zalomitelný algoritmem řádkového zlomu. Vzhledem k tomu, že u výplňového textu nečekáme přítomnost nových slov, může být vhodnější (a efektivnější) použít jazykový model, který negeneruje věty po znacích, ale po celých slovech.
 
 \section{Závěr}
 \label{sec:zaver}
 
-V tomto článku jsme si ukázali, jak můžeme pomocí jazykových modelů automaticky generovat jména postav při tvůrčím psaní v Lua\TeX u. Dále jsme vyvinuli jsme balíček, který je přístupný laickým uživatelům \LaTeX u, a zveřejnili jsme ho online~\cite{novotny2023napadovnik}. Nakonec jsme si rozebrali možná vylepšení našeho modelu a další možné aplikace jazykových modelů v Lua\TeX u. Článek názorně ukazuje vývoj \LaTeX ového balíčku, který kombinuje kód v \TeX u s kódem v jazyce Lua, a demonstruje možnosti využití jazykových modelů v \TeX u.
+V tomto článku jsme si ukázali, jak můžeme pomocí jazykových modelů automaticky generovat jména postav při tvůrčím psaní v Lua\TeX u. Dále jsme vyvinuli balíček, který je přístupný laickým uživatelům \LaTeX u, a zveřejnili jsme ho online~\cite{novotny2023napadovnik}. Nakonec jsme si rozebrali možná vylepšení našeho modelu a další možné aplikace jazykových modelů v Lua\TeX u. Článek názorně ukazuje vývoj \LaTeX ového balíčku, který kombinuje kód v \TeX u s kódem v jazyce Lua, a demonstruje možnosti využití jazykových modelů v \TeX u.
 
 \begin{luacode*}
 os.execute("cat randomnames-model-01.lua randomnames-model-02.lua randomnames-random.lua randomnames-walk.lua randomnames-facade.lua randomnames-tail.lua > randomnames.lua")
@@ -1778,10 +1796,18 @@ os.execute("sed -r -i 's/\\s*--\\s*[^\\s].*$//' randomnames.lua")
 os.execute("sed -r -i 's/\\s*%\\s*[^\\s].*$//' randomnames.tex randomnames.sty")
 \end{luacode*}
 
+\hyphenation{Pro-gram-ming}
+
 \printbibliography
 
 \begin{summary}
 A famous dictum of the computer scientist Phil Karlton says that there are only two difficult things in computer science: cache invalidation and naming things. This is also true in creative writing, where authors have to come up not just with a story and a setting but also the names of all their fictional characters. In this article, we develop a language model in Lua\TeX, which allows authors to automatically generate names for their characters. Besides creative writing, we also discuss other uses of language models in Lua\TeX, namely the automatic switching of hyphenation patterns based on the current language and blind text generation. For the \TeX nically-minded users, the article acts as an introduction to the programming languages of Lua and expl3, and also the xparse \LaTeX{} package for defining document commands in \LaTeX.
 \keywords: creative writing, trie, language models, Lua\TeX, Lua, expl3, xparse
 \end{summary}
+
+\begin{luacode*}
+os.execute("sed -r -i 's/((\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}).* )`([^`]*)(\\})$/\\1\\\\textbf{\\3}\\4/' _minted-*/*.pygtex")
+os.execute("sed -r -i 's/((\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}).* )`([^`]*)`/\\1\\\\textbf{\\3}/' _minted-*/*.pygtex")
+os.execute("sed -r -i 's/(\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}) (.*)`/\\1 \\\\textbf{\\2}/' _minted-*/*.pygtex")
+\end{luacode*}
 \end{document}
