@@ -1634,7 +1634,7 @@ models.muz = nil
 Popsaný algoritmus funguje pouze pro česká jména a hledání jména s nejpodobnější koncovkou má lineární časovou složitost ve velikosti trénovací množiny. Budoucí práce by se měla zaměřit na rozšíření algoritmu o další flektivní jazyky jako slovenštiny a použít datovou strukturu jako trie pro efektivní hledání trénovacích jmen s nejdelší společnou koncovkou.
 
 \subsection{Omezující podmínky pro generovaná jména}
-Náš jazykový model umožňuje uživateli zadat předponu, nebo příponu vygenerovaného jména, ale ne obojí zároveň. Dále uživatel nemůže ovlivnit střed vygenerovaného jména, nebo omezit jeho délku. Ve chvíli, kdy uživatel není s vygenerovaným jménem spokojený, musí jméno generovat opakovaně s různými náhodnými semínky, dokud není spokojený. Tento zdlouhavý proces bychom rádi urychlili tak, že uživateli umožníme zadat dodatečné omezující podmínky.
+Náš jazykový model umožňuje uživateli zadat předponu, nebo příponu vygenerovaného jména, ale ne obojí zároveň. Dále uživatel nemůže ovlivnit střed vygenerovaného jména, nebo omezit jeho délku. Ve chvíli, kdy uživatel není s vygenerovaným jménem spokojený, musí jméno generovat opakovaně s různými náhodnými semínky. Tento zdlouhavý proces bychom rádi urychlili tak, že uživateli umožníme zadat dodatečné omezující podmínky.
 
 \subsubsection{Permutermíny}
 \label{sec:permuterminy}
@@ -1668,10 +1668,10 @@ tex.print(name)
 \exampleoutput{\directlua{assert(loadfile("randomnames-permuterm-example.lua"))()}}
 \catcode`\$=3
 
-Popsané problémy souvisí se zapomnětlivostí našeho jazykového modelu a nemají přímočaré řešení, tj. bez úprav našeho modelu nelze permutermíny použít. Budoucí práce by se měla zaměřit na popis a implementaci těchto úprav.
+Popsané problémy souvisí se zapomnětlivostí našeho jazykového modelu a nemají přímočaré řešení, tj. bez úprav našeho modelu nelze permutermíny použít. Budoucí práce by se měla zaměřit na popis a implementaci potřebných úprav.
 
 \subsubsection{Regulární výrazy}
-Jedním způsobem, jak omezit vygenerované jméno, jsou regulární výrazy:
+Dalším způsobem, jak omezit vygenerované jméno, jsou regulární výrazy:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-regex-example.lua}
 local name = nil
