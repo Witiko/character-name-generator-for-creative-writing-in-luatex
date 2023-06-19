@@ -1702,7 +1702,7 @@ V sekci~\ref{sec:priklady} jsme pracovali s trénovacími množinami, které ča
 
 Jedním způsobem, jak zlepšit generalizační schopnosti našich modelů, je pomocí tzv. \emph{vyhlazování pravděpodobnosti} smíšením několika modelů. Pokud máme např. model sindarinštiny $M_{\text{s}}$ a model velštiny $M_{\text{v}}$, můžeme pro výpočet pravděpodobnosti dalšího znaku $S[i]$ použít lineární vyhlazování:
 \begin{equation}
-P\big(S[i]\mid k\big) = \lambda\cdot P\big(S[i]\mid k; M_{\text{s}}\big) + (1-\lambda)\cdot \big(S[i]\mid k ; M_{\text{v}}\big),
+P\big(S[i]\mid k\big) = \lambda\cdot P\big(S[i]\mid k; M_{\text{s}}\big) + (1-\lambda)\cdot P\big(S[i]\mid k ; M_{\text{v}}\big),
 \end{equation}
 kde $k = S[i-n,\ldots,i-1]$ je kontext posledních $n$ znaků a $\lambda$ je relativní váha sindarinštiny oproti velštině. Díky velké trénovací množině pro velštinu bude výsledný model schopný lépe generalizovat mimo trénovací množinu pro sindarinštinu a generovat kreativní nová jména.
 
