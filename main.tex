@@ -405,7 +405,7 @@ local Random = { A = 771645345, M = 1073741789 }
 
 function Random.new(seed)
   seed = seed                      -- Omez semínko na celočíselné
-       % (Random.M - 2) + 1        -- hodnoty od 1 do m - 1.
+       % (Random.M - 1) + 1        -- hodnoty od 1 do m - 1.
   local random = { x = seed }      -- Vytvoř objekt se semínkem.
   local mt = { __index = Random }  -- Zděď metody třídy `Random`.
   setmetatable(random, mt)
@@ -632,7 +632,7 @@ local randoms = {}          -- a generátorů pseudonáhodných čísel.
 
 local function hash(name)   -- Vypočti ze jména modelu počáteční
   local result = 0          -- semínko s hašovací funkcí sdbm.
-  local modulus = Random.M - 2
+  local modulus = Random.M - 1
   for _, code in utf8.codes(name) do
     result = multiply_modulo(result, 65599, modulus)
     result = (result + code) % modulus
@@ -1040,8 +1040,8 @@ Programovací jazyk expl3 má pro uživatele \TeX u poměrně neobvyklou syntax.
 
 \ProvidesExplPackage
   {randomnames}%
-  {2023-06-07}%
-  {1.0.1}%
+  {2023-06-25}%
+  {1.0.2}%
   {Character name generators for creative writing in LuaLaTeX}
 
 \RequirePackage{xparse}               % Načti balíček xparse.
@@ -1176,8 +1176,8 @@ Následně sestavíme dva modely, jeden pro mužská křestní jména a druhý p
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{krestni-jmena-example-02.tex}
-\newmodel{zena}
-\newmodel{muz}
+\newmodel[seed=623250988]{zena}
+\newmodel[seed=908195382]{muz}
 \inputnames{zena}{krestni-jmena-zeny.txt}
 \inputnames{muz}{krestni-jmena-muzi.txt}
 \end{filecontents}
@@ -1261,7 +1261,7 @@ Následně sestavíme tři modely, jeden pro jména trpaslíků, druhý pro jmé
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-example-02.tex}
-\newmodel[context_size=2]{trpaslik}
+\newmodel[context_size=2,seed=876682948]{trpaslik}
 \newmodel[max_context_size=2,seed=12]{elfka}
 \newmodel[seed=41]{clovek}
 \inputnames{trpaslik}{tolkien-jmena-trpasliku.txt}
@@ -1361,7 +1361,7 @@ Následně sestavíme model jmen prastarých a použijeme ho v textu fanfikce:
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{lovecraft-jmena-prastarych-example-02.tex}
-\newmodel{prastary}
+\newmodel[seed=798513691]{prastary}
 \inputnames{prastary}{lovecraft-jmena-prastarych.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{lovecraft-jmena-prastarych-example-03.tex}
@@ -1420,7 +1420,7 @@ Následně sestavíme model jmen kouzel a použijeme ho v textu fanfikce:
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{harry-potter-kouzla-example-02.tex}
-\newmodel{kouzlo}
+\newmodel[seed=100269274]{kouzlo}
 \inputnames{kouzlo}{harry-potter-kouzla.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{harry-potter-kouzla-example-03.tex}
@@ -1482,7 +1482,7 @@ Následně sestavíme model jmen pokémonů a použijeme ho v textu fanfikce:
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{jmena-pokemonu-example-02.tex}
-\newmodel[max_context_size=4,seed=1234567890]{pokemon}
+\newmodel[max_context_size=4,seed=160826103]{pokemon}
 \inputnames{pokemon}{jmena-pokemonu.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{jmena-pokemonu-example-03.tex}
@@ -1578,8 +1578,8 @@ Nakonec sestavíme dva modely, jeden pro mužská křestní jména a druhý pro
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-02.tex}
-\newmodel{zena}
-\newmodel{muz}
+\newmodel[seed=623250988]{zena}
+\newmodel[seed=908195382]{muz}
 \inputnames{zena}{krestni-jmena-zeny.txt}
 \inputnames{muz}{krestni-jmena-muzi.txt}
 \end{filecontents}
@@ -1754,7 +1754,7 @@ Následně sestavíme model vět o psech a použijeme ho k vygenerování odstav
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-example-02.tex}
-\newmodel[context_size=9]{veta-o-psu}
+\newmodel[context_size=9,seed=961930607]{veta-o-psu}
 \inputnames{veta-o-psu}{karel-capek-dasenka.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-example-03.tex}
