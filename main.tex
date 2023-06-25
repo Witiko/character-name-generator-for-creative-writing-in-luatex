@@ -405,8 +405,10 @@ Pro dosažení nezávislosti na platformě požadujeme, aby mezivýsledky nepře
 local Random = { A = 771645345, M = 1073741789 }
 
 function Random.new(seed)
-  seed = seed                      -- Omez semínko na celočíselné
-       % (Random.M - 1) + 1        -- hodnoty od 1 do m - 1.
+  assert(seed >= 0 and             -- Povol semínko z rozsahu
+         seed <= 2147483647)       -- od 0 do 2^31 - 1.
+  seed = seed                      -- Převeď semínko do rozsahu
+       % (Random.M - 1) + 1        -- od 1 do m - 1.
   local random = { x = seed }      -- Vytvoř objekt se semínkem.
   local mt = { __index = Random }  -- Zděď metody třídy `Random`.
   setmetatable(random, mt)
@@ -418,11 +420,9 @@ local function multiply_modulo(a, x, m)
   a = a % m                        -- násobení zajistí, že
   while x > 0 do                   -- mezivýsledky nepřesáhnou
     if x % 2 == 1 then             -- hodnotu 2 * m.
-      result = (result + a) % m
-    end
+      result = (result + a) % m end
     a = (a * 2) % m
-    x = x // 2
-  end
+    x = x // 2 end
   return result
 end
 
