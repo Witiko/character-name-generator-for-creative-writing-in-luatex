@@ -156,7 +156,7 @@ P(S) = \big(  \!\!\! \!\!\! \prod_{i = 1,\ldots,|S|} \!\!\!\! P(S[i]\mid S[1, \l
 \text{ kde $\epsilon$ je prázdné slovo.}
 \end{equation}
 
-Pro výpočet podmíněné pravděpodobnosti znaku sestoupíme nejprve z počátečního vrcholu po znacích $S[1, \ldots, i-1]$ do vrcholu $v$. Následně zvolíme hranu $h$ z vrcholu $v$ se znakem $S[i]$. Pravděpodobnost spočítáme jako podíl váhy $c$ hrany $h$ vůči součtu vah všech hran $H$ vycházejících z vrcholu $v$:
+Pro výpočet podmíněné pravděpodobnosti znaku sestoupíme nejprve z počátečního vrcholu po znacích $S[1, \ldots, i-1]$ do vrcholu $v$. Následně zvolíme hranu $h$ z vrcholu $v$ se znakem $S[i]$. Pravděpodobnost spočítáme jako podíl váhy $c$ hrany~$h$ vůči součtu vah všech hran $H$ vycházejících z vrcholu $v$:
 \begin{equation}
 P(S[i]\mid S[1, \ldots, i-1]) = \frac{c(e)}{\sum_{e'\in E} c(e')}.
 \end{equation}
@@ -311,6 +311,7 @@ end
 os.execute("cat randomnames-model-01a.lua randomnames-model-01b.lua randomnames-model-01c.lua randomnames-model-01d.lua randomnames-model-01e.lua > randomnames-model-01.lua")
 \end{luacode*}
 
+\pagebreak
 Katzův couvající jazykový model sestavíme ze zapomnětlivých modelů pro délky kontextu $n=i, i+1, \ldots, j-1, j$, kde hraniční hodnoty $i, j$ zadává uživatel.
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-model-02.lua}
@@ -834,7 +835,7 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
         )
       }
     \group_end:                       % Resetuj hodnoty lokálních
-  }                                   % proměnných zpět na `nil`.
+  }                                   % proměnných zpět na nil.
 
 \cs_new:Nn
   \randomnames_add_name:nn
@@ -950,7 +951,7 @@ Abychom mohli jazykové modely používat přímo z \TeX u, budeme nyní chtít 
       }
     \tl_use:N \l_tmpa_tl              % Vlož jméno na výstup.
     \group_end:                       % Resetuj hodnoty lokálních
-  }                                   % proměnných zpět na `nil`.
+  }                                   % proměnných zpět na nil.
 
 \ExplSyntaxOff
 \end{filecontents}
@@ -1700,7 +1701,7 @@ randoms.pes = nil
 Ve výše uvedeném příkladu jsme opakovaně generovali jména, dokud jsme nenašli takové, které by odpovídalo zadanému regulárnímu výrazu. Takovéto hledání je implementačně přímočaré, ale může být výpočetně náročné, pokud hledáme nepravděpodobné jméno.
 
 Pokud sestavíme pro zadaný regulární výraz nedeterministický konečný automat, můžeme již během náhodné procházky navštívit pouze hrany, které automat nedostanou do neakceptujícího stavu, a přestat generovat, pouze když je automat v akceptujícím stavu. Tento přístup je efektivnější, ale ani zde se nevyhneme opakovanému generování jmen: snadno se totiž dostaneme do slepé uličky, kdy náš model není schopný vygenerovat odpovídající jméno. Pokud bychom například, podobně jako ve výše uvedeném příkladu, chtěli vygenerovat jméno pohádkového psa, ale omezili bychom ho regulárním výrazem \texttt{\textit{maxipes\textvisiblespace .*\textvisiblespace pejsek}}, náš model bude generovat nekonečný textový řetězec ,,maxipes filipes filipes filipes \ldots``. Automat modelu nedovolí přestat generovat, dokud nezakončí jméno slovem ,,pejsek``, což ale nemůže nastat, vizte Obrázek~\vref{fig:language-model-3}.
-Jelikož je náš jazykový model také (pravděpodobnostní) konečný automat, který generuje regulární jazyky, mohli bychom podobné slepé uličky detekovat algoritmem, který zkontroluje, že regulární jazyk generovaný modelem a regulární jazyk akceptovaný automatem s aktuálním stavem nastaveným jako počátečním mají neprázdný průnik. Nejefektivnější známý algoritmus má ale exponenciální časovou složitost~\cite{rabin1959finite}, což ho pro naše potřeby činí nepraktickým. Jako praktické řešení se jeví shora omezit počet kroků modelu během náhodné procházky a počet opakovaných pokusů o náhodnou procházku.
+Jelikož je náš jazykový model také (pravděpodobnostní) konečný automat, který generuje regulární jazyky, mohli bychom podobné slepé uličky detekovat algoritmem, který zkontroluje, že regulární jazyk generovaný modelem a regulární jazyk akceptovaný automatem s aktuálním stavem nastaveným jako počátečním mají neprázdný průnik. Nej\-efektivnější známý algoritmus má ale exponenciální časovou složitost~\cite{rabin1959finite}, což ho pro naše potřeby činí nepraktickým. Jako praktické řešení se jeví shora omezit počet kroků modelu během náhodné procházky a počet opakovaných pokusů o náhodnou procházku.
 
 \subsection{Vyhlazování pravděpodobnosti}
 V sekci~\ref{sec:priklady} jsme pracovali s trénovacími množinami, které často obsahovaly jen malé desítky jmen. Jazykové modely trénované na těchto množinách jmen mají omezené schopnosti generalizace a nedokážou např. vygenerovat jména se znaky, které se neobjevily v trénovací množině. U mnoha jmen však známe dodatečné informace, kterými bychom mohli jazykové modely obohatit: jména prastarých v Cthulhu mýtu H.\,P.\,Lovecrafta (vizte sekci~\ref{sec:cthulhu}) jsou psána v latinkové transkripci r'lyehštiny, která byla pravděpodobně inspirována psanou velštinou~\cite{novotny2020cthulhu} podobně jako jména v elfské sindarinštině~\cite{hooker2012welsh} (vizte sekci~\ref{sec:tolkien}). Anglická jména kapesních příšerek Pokémon (vizte sekci~\ref{sec:pokemon}) jsou často anglické složeniny, např. bulbasaur = bulb (žárovka) + dinosaur a beedrill = bee (včela) + drill (vrták)~\cite{creativeblogger2017pokemon}.
@@ -1725,7 +1726,7 @@ P(\text{\worldflag[width=1.5mm]{ANY}\!\!}\mid V) = \frac{P(V; M_{\text{\worldfla
 \end{equation}
 Pokud předpokládáme, že všechny jazyky jsou apriori stejně pravděpodobné, pak $P(\text{\worldflag[width=1.5mm]{ANY}\!\!}) / P(V)$ je jen multiplikativní konstanta a dostáváme, že věta $V$ je v češtině právě tehdy, když $P(V; M_{\text{\worldflag[width=1.5mm]{CZ}\!\!}}) > P(V; M_{\text{\worldflag[width=1.5mm]{SK}\!\!}})$, což dokážeme snadno spočítat pouze s využitím našich dvou modelů.
 
-V praxi rozlišovat češtinu od slovenštiny nepotřebujeme, protože oba jazyky mají v \TeX u společné vzory pro dělení slov~\cite{sojka2019unreasonable,sojka2020towards}. Máme ale mnoho jiných jazyků $J$, pro které společné vzory pro dělení slov (zatím) neexistují. Při detekci jazyka bychom vždy vybrali nejpravděpodobnější jazyk $\text{\worldflag[width=1.5mm]{ANY}\!\!} = \argmax_{\text{\worldflag[width=1.5mm]{ANY}\!\!}\in J} P(V; M_\text{\worldflag[width=1.5mm]{ANY}\!\!})$.
+V praxi rozlišovat češtinu od slovenštiny nepotřebujeme, protože oba jazyky mají v \TeX u společné vzory pro dělení slov~\cite{sojka2019unreasonable,sojka2020towards}. Máme ale mnoho jiných jazyků~$J$, pro které společné vzory pro dělení slov (zatím) neexistují. Při detekci jazyka bychom vždy vybrali nejpravděpodobnější jazyk $\text{\worldflag[width=1.5mm]{ANY}\!\!} = \argmax_{\text{\worldflag[width=1.5mm]{ANY}\!\!}\in J} P(V; M_\text{\worldflag[width=1.5mm]{ANY}\!\!})$.
 
 \subsubsection{Výplňový text}
 Při přípravě dokumentových šablon se nám může hodit generovat výplňový text, který do šablon umístíme při přípravě ukázkových maket. Pokud budeme, stejně jako v předchozí sekci, trénovat naše modely místo jmen na větách, můžeme snadno generovat věrohodný výplňový text.
@@ -1813,6 +1814,7 @@ A famous dictum of the computer scientist Phil Karlton says that there are only 
 \begin{luacode*}
 os.execute("sed -r -i 's/((\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}).* )`([^`]*)(\\})$/\\1\\\\textbf{\\3}\\4/' _minted-*/*.pygtex")
 os.execute("sed -r -i 's/((\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}).* )`([^`]*)`/\\1\\\\textbf{\\3}/' _minted-*/*.pygtex")
+os.execute("sed -r -i 's/((\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}).* )(false|nil)/\\1\\\\textsl{\\3}/' _minted-*/*.pygtex")
 os.execute("sed -r -i 's/(\\\\PYG\\{c\\}\\{\\\\PYGZpc\\{\\}|\\\\PYG\\{c\\+c1\\}\\{\\\\PYGZhy\\{\\}\\\\PYGZhy\\{\\}) (.*)`/\\1 \\\\textbf{\\2}/' _minted-*/*.pygtex")
 \end{luacode*}
 \end{document}
