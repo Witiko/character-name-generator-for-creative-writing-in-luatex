@@ -290,7 +290,8 @@ function ForgetfulModel.input_names(model, filename)
   assert(file)                           -- zadaného textového
   for name in file:lines() do            -- souboru se jmény.
     if #name:match("^%s*(.-)%s*$") == 0  -- Přeskoč prázdné řádky.
-      then goto continue end
+      then goto continue
+    end
     model:add_name(name)                 -- Zanes jméno do modelu.
     ::continue::
   end
@@ -402,7 +403,7 @@ x_n = a\cdot x_{n-1}\pmod{m},
 kde $x_1\neq0\pmod{m}$ je náhodné semínko, $x_n$ je $n$-té pseudonáhodné číslo a $a$, $m$ jsou tabulkové hodnoty.
 Pro dosažení nezávislosti na platformě požadujeme, aby mezivýsledky nepřesáhly hodnotu $2^{31} - 1$. Toho dosáhneme vhodným výběrem hodnot $a = 771\,645\,345$, $m = 2^{30} - 35 = 1\,073\,741\,789$~\cite[tabulka~2]{l1999tables}, omezením semínka na hodnoty od 1 do $m - 1$ a použitím algoritmu pro modulární násobení.
 
-\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-a.lua}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random.lua}
 local Random = { A = 771645345, M = 1073741789 }
 
 function Random.new(seed)
@@ -421,32 +422,25 @@ local function multiply_modulo(a, x, m)
   a = a % m                        -- násobení zajistí, že
   while x > 0 do                   -- mezivýsledky nepřesáhnou
     if x % 2 == 1 then             -- hodnotu 2 * m.
-      result = (result + a) % m end
+      result = (result + a) % m
+    end
     a = (a * 2) % m
-    x = x // 2 end
+    x = x // 2
+  end
   return result
 end
 
 function Random.get_next_number(random, from, to)
   random.x = multiply_modulo(Random.A, random.x, Random.M)
-  local result = (random.x - 1)    -- Převeď číslo do zprava
-               / (Random.M - 1)    -- otevřeného intervalu [0; 1).
-  return from                      -- Navrať celé číslo
-\end{filecontents}
-\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-b.lua}
-       + math.floor( result        -- v zadaném rozsahu.\footnotemark
-\end{filecontents}
-\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-c.lua}
-                   * (to - from + 1))
+  local result = from              -- Navrať celé číslo
+               + (random.x         -- v zadaném rozsahu.
+                 % (to - from + 1))
+  return result
 end
+
 \end{filecontents}
 
-\begin{mintedblock}
-\myinputminted{lua}{randomnames-random-a.lua}
-\myinputminted[texcomments]{lua}{randomnames-random-b.lua}
-\footnotetext{Jazyk Lua 5.3 používá 64bitová reálná čísla s 53bitovou mantisou~\cite[sekce~2.1]{ierusalimschy2020lua}. Díky tomu dostaneme při použití reálné aritmetiky vždy stejné výsledky nezávisle na platformě. Zvídavý čtenář se ale jistě zamyslí, jak bychom se tu mohli reálné aritmetice zcela vyhnout.}
-\myinputminted{lua}{randomnames-random-c.lua}
-\end{mintedblock}
+\myinputminted{lua}{randomnames-random.lua}
 
 Generátor můžeme v Lua\TeX u použít následně:
 
@@ -461,7 +455,6 @@ end
 
 \noindent
 \begin{luacode*}
-os.execute("cat randomnames-random-a.lua randomnames-random-b.lua randomnames-random-c.lua > randomnames-random.lua")
 os.execute("cat randomnames-random.lua > randomnames-random-example-helper.lua")
 os.execute("echo return {multiply_modulo, Random} >> randomnames-random-example-helper.lua")
 multiply_modulo, Random = table.unpack(require("randomnames-random-example-helper"))
@@ -476,7 +469,8 @@ Náhodné procházky Katzova couvajícího modelu sestávají z elementárních 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk.lua}
 local function take_random_step(graph, context, random)
   if graph[context] == nil then  -- Pokud neexistuje vrchol pro
-    return nil end               -- současný kontext, selži.
+    return nil                   -- současný kontext, selži.
+  end
   local vertex = graph[context]  -- Vyber vrchol pro současný
   assert(#graph[context] > 0)    -- kontext.
   local total_weight = 0         -- Sečti hodnoty odchozích hran.
@@ -548,8 +542,8 @@ end
 Náhodné procházky provedeme v Lua\TeX u následně:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-01.lua}
-for i = 1, 5 do -- Vypiš výsledky 5 procházek s předponou pe- se
-  tex.sprint(   -- zapomnětlivým modelem s délkou kontextu 6.
+for i = 1, 5 do  -- Vypiš výsledky 5 procházek s předponou pe- se
+  tex.sprint(    -- zapomnětlivým modelem s délkou kontextu 6.
     model:take_random_walk("forward", "pe", random, 6, 6))
   if i < 5 then tex.sprint(", ") end
 end
@@ -563,10 +557,10 @@ assert(loadfile("randomnames-walk.lua"))()
 \exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-01.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-02.lua}
-for i = 1, 5 do -- Vypiš výsledky 5 procházek s příponou -k se
-  tex.sprint(   -- zapomnětlivým modelem s délkou kontextu 6.
+for i = 1, 20 do -- Vypiš výsledky 20 procházek s příponou -k se
+  tex.sprint(    -- zapomnětlivým modelem s délkou kontextu 6.
     model:take_random_walk("reverse", "k", random, 6, 6))
-  if i < 5 then tex.sprint(", ") end
+  if i < 20 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-02.lua}
@@ -575,10 +569,10 @@ end
 \exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-02.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-03.lua}
-for i = 1, 10 do -- Vypiš výsledky 10 procházek bez afixu se
+for i = 1, 5 do  -- Vypiš výsledky 5 procházek bez afixu se
   tex.sprint(    -- zapomnětlivým modelem s délkou kontextu 3.
     model:take_random_walk("forward", "", random, 3, 3))
-  if i < 10 then tex.sprint(", ") end
+  if i < 5 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-03.lua}
@@ -611,10 +605,10 @@ end
 \exampleoutput{\directlua{assert(loadfile("randomnames-walk-example-05.lua"))()}}
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk-example-06.lua}
-for i = 1, 10 do -- Vypiš výsledky 10 procházek s předponou i- nad
+for i = 1, 5 do  -- Vypiš výsledky 5 procházek s předponou i- nad
   tex.sprint(    -- Katzovým modelem s délkami kontextu 1 až 4.
     model:take_random_walk("forward", "i", random, 1, 4))
-  if i < 10 then tex.sprint(", ") end
+  if i < 5 then tex.sprint(", ") end
 end
 \end{filecontents}
 \myinputminted[linenos=false]{lua}{randomnames-walk-example-06.lua}
@@ -727,7 +721,7 @@ end
 Pomocí naší fasády vytvoříme Katzův couvající jazykový model a provedeme v něm náhodnou procházku v Lua\TeX u následně:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-facade-example.lua}
-randomnames.new_model("pes", 1, 3)              -- Vytvoř model.
+randomnames.new_model("pes", 1, 3, 1234567)     -- Vytvoř model.
 randomnames.add_name("pes", "pes filipes")      -- Zanes do modelu
 randomnames.add_name("pes", "pejsek")           -- jména
 randomnames.add_name("pes", "maxipes fík")      -- pohádkových psů.
@@ -1007,6 +1001,7 @@ Pomocí našeho přemostění vytvoříme Katzův couvající jazykový model a 
   {
     min_context_size = 1,
     max_context_size = 3,
+    seed = 1234567,
   }
   { pes }
 \randomnames_add_name:nn { pes } { pes~filipes } % Zanes do modelu
@@ -1015,8 +1010,7 @@ Pomocí našeho přemostění vytvoříme Katzův couvající jazykový model a 
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-plain-example-02.tex}
 \randomnames_take_random_walk:nn { } { pes }     % Vygeneruj jméno.
-\ExplSyntaxOff
-\bye
+\ExplSyntaxOff \bye
 \end{filecontents}
 
 \begin{mintedblock}
@@ -1078,7 +1072,6 @@ Programovací jazyk expl3 má pro uživatele \TeX u poměrně neobvyklou syntax.
       { #1 }                          % v jazyce Lua.
       { #2 }
   }
-
 \NewDocumentCommand                   % Vytvoř LaTeXový příkaz
   { \inputnames }                     % `\inputnames` se dvěma
   { m m }                             % povinnými argumenty,
@@ -1112,7 +1105,8 @@ Pomocí našeho uživatelského rozhraní příkazů vytvoříme Katzův couvaj�
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-latex-example-02.tex}
 \newmodel[min_context_size=1,                    % Vytvoř model.
-          max_context_size=3]{pes}
+          max_context_size=3,
+          seed = 1234567]{pes}
 \addname{pes}{pes filipes}                       % Zanes do modelu
 \addname{pes}{pejsek}                            % jména
 \addname{pes}{maxipes fík}                       % pohádkových psů.
@@ -1147,7 +1141,7 @@ Pomocí našeho uživatelského rozhraní příkazů vytvoříme Katzův couvaj�
 \label{sec:priklady}
 V této sekci stáhneme několik příkladových databází jmen, natrénujeme na nich náš model a ukážeme si, jak bychom vygenerovali jména postav a zahrnuli je do textu povídky.
 
-Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžeme uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex priklad.tex}. Pro úspěšný překlad stáhneme do pracovního adresáře také soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
+Při stahování příkladových databází používáme terminál \textsc{unix}ového systému s příkazovým procesorem \texttt{/bin/bash} a s nainstalovaným programem \texttt{xmllint} z knihovny libxml2. Příkladové dokumenty si můžeme uložit do textového souboru \texttt{priklad.tex} a přeložit příkazem \texttt{lualatex priklad.tex}. Pro úspěšný překlad stáhneme do pracovního adresáře soubory \texttt{randomnames.lua}, \texttt{randomnames.tex} a \texttt{randomnames.sty}~\cite{novotny2023napadovnik}, které jsme vytvořili v sekcích~\ref{sec:implementace} a \ref{sec:rozhrani}.
 
 \subsection{Soudobá křestní jména}
 \label{sec:krestni-jmena}
@@ -1190,8 +1184,8 @@ Následně sestavíme dva modely, jeden pro mužská křestní jména a druhý p
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{krestni-jmena-example-02.tex}
-\newmodel[seed=623250988]{zena}
-\newmodel[seed=908195382]{muz}
+\newmodel{zena}
+\newmodel{muz}
 \inputnames{zena}{krestni-jmena-zeny.txt}
 \inputnames{muz}{krestni-jmena-muzi.txt}
 \end{filecontents}
@@ -1275,9 +1269,9 @@ Následně sestavíme tři modely, jeden pro jména trpaslíků, druhý pro jmé
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{tolkien-jmena-example-02.tex}
-\newmodel[context_size=2,seed=876682948]{trpaslik}
-\newmodel[max_context_size=2,seed=12]{elfka}
-\newmodel[seed=41]{clovek}
+\newmodel[context_size=2,seed=35]{trpaslik}
+\newmodel[max_context_size=2,seed=6]{elfka}
+\newmodel[seed=2419]{clovek}
 \inputnames{trpaslik}{tolkien-jmena-trpasliku.txt}
 \inputnames{elfka}{tolkien-jmena-elfek.txt}
 \inputnames{clovek}{tolkien-jmena-lidskych-muzu.txt}
@@ -1375,7 +1369,7 @@ Následně sestavíme model jmen prastarých a použijeme ho v textu fanfikce:
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{lovecraft-jmena-prastarych-example-02.tex}
-\newmodel[seed=798513691]{prastary}
+\newmodel[seed=140]{prastary}
 \inputnames{prastary}{lovecraft-jmena-prastarych.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{lovecraft-jmena-prastarych-example-03.tex}
@@ -1434,7 +1428,7 @@ Následně sestavíme model jmen kouzel a použijeme ho v textu fanfikce:
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{harry-potter-kouzla-example-02.tex}
-\newmodel[seed=100269274]{kouzlo}
+\newmodel{kouzlo}
 \inputnames{kouzlo}{harry-potter-kouzla.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{harry-potter-kouzla-example-03.tex}
@@ -1444,7 +1438,7 @@ Následně sestavíme model jmen kouzel a použijeme ho v textu fanfikce:
 Tesák, Hagridův pes, ležel před chatrčí a pozoroval okolní les.
 Najednou uslyšel hlasitý křik z nedaleké cesty. Překvapeně se
 postavil na nohy a natahoval uši. Když zpozoroval kouzelníka, jak
-na něj mává hůlkou a křičí „\randomname[seed=19]{kouzlo}!“,
+na něj mává hůlkou a křičí „\randomname[seed=2136]{kouzlo}!“,
 okamžitě sebou trhl a rozběhl se k němu s otevřenou tlamou.
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{harry-potter-kouzla-example-05.tex}
@@ -1496,7 +1490,7 @@ Následně sestavíme model jmen pokémonů a použijeme ho v textu fanfikce:
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{jmena-pokemonu-example-02.tex}
-\newmodel[max_context_size=4,seed=160826103]{pokemon}
+\newmodel[max_context_size=4,seed=4]{pokemon}
 \inputnames{pokemon}{jmena-pokemonu.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{jmena-pokemonu-example-03.tex}
@@ -1592,8 +1586,8 @@ Nakonec sestavíme dva modely, jeden pro mužská křestní jména a druhý pro
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{sklonovani-example-02.tex}
-\newmodel[seed=623250988]{zena}
-\newmodel[seed=908195382]{muz}
+\newmodel{zena}
+\newmodel{muz}
 \inputnames{zena}{krestni-jmena-zeny.txt}
 \inputnames{muz}{krestni-jmena-muzi.txt}
 \end{filecontents}
@@ -1667,7 +1661,7 @@ local function add_permuterms(model_name, name)
   end
 end
 
-randomnames.new_model("perm", 1, 3, 42) -- Vytvoř model.
+randomnames.new_model("perm", 1, 3, 17) -- Vytvoř model.
 add_permuterms("perm", "pes filipes")   -- Zanes do modelu
 add_permuterms("perm", "pejsek")        -- permutermíny
 add_permuterms("perm", "maxipes fík")   -- pohádkových psů.
@@ -1768,16 +1762,16 @@ Následně sestavíme model vět o psech a použijeme ho k vygenerování odstav
 \usepackage{randomnames}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-example-02.tex}
-\newmodel[context_size=9,seed=961930607]{veta-o-psu}
+\newmodel[context_size=9]{veta-o-psu}
 \inputnames{veta-o-psu}{karel-capek-dasenka.txt}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-example-03.tex}
 \begin{document}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-example-04.tex}
-\randomname[seed=29]{veta-o-psu}
-\randomname[seed=43]{veta-o-psu}
-\randomname[seed=55]{veta-o-psu}
+\randomname[seed=417]{veta-o-psu}
+\randomname[seed=10204]{veta-o-psu}
+\randomname[seed=9335]{veta-o-psu}
 \end{filecontents}
 \begin{filecontents}[overwrite, nosearch, noheader]{karel-capek-dasenka-example-05.tex}
 \end{document}
