@@ -1661,11 +1661,11 @@ local function add_permuterms(model_name, name)
   end
 end
 
-randomnames.new_model("perm", 1, 3, 17) -- Vytvoř model.
-add_permuterms("perm", "pes filipes")   -- Zanes do modelu
-add_permuterms("perm", "pejsek")        -- permutermíny
-add_permuterms("perm", "maxipes fík")   -- pohádkových psů.
-local name = randomnames.               -- Vygeneruj permutermín.
+randomnames.new_model("perm", 1, 3, 17)  -- Vytvoř model.
+add_permuterms("perm", "pes filipes")    -- Zanes do modelu
+add_permuterms("perm", "pejsek")         -- permutermíny
+add_permuterms("perm", "maxipes fík")    -- pohádkových psů.
+local name = randomnames.                -- Vygeneruj permutermín.
   take_random_walk("perm", "forward", "ek$pe")
 tex.print(name)
 \end{filecontents}
