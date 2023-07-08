@@ -402,7 +402,7 @@ x_n = a\cdot x_{n-1}\pmod{m},
 kde $x_1\neq0\pmod{m}$ je náhodné semínko, $x_n$ je $n$-té pseudonáhodné číslo a $a$, $m$ jsou tabulkové hodnoty.
 Pro dosažení nezávislosti na platformě požadujeme, aby mezivýsledky nepřesáhly hodnotu $2^{31} - 1$. Toho dosáhneme vhodným výběrem hodnot $a = 771\,645\,345$, $m = 2^{30} - 35 = 1\,073\,741\,789$~\cite[tabulka~2]{l1999tables}, omezením semínka na hodnoty od 1 do $m - 1$ a použitím algoritmu pro modulární násobení.
 
-\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random.lua}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-a.lua}
 local Random = { A = 771645345, M = 1073741789 }
 
 function Random.new(seed)
@@ -431,14 +431,22 @@ function Random.get_next_number(random, from, to)
   random.x = multiply_modulo(Random.A, random.x, Random.M)
   local result = (random.x - 1)    -- Převeď číslo do zprava
                / (Random.M - 1)    -- otevřeného intervalu [0; 1).
-  result = from                    -- Navrať celé číslo
-         + math.floor( result      -- v zadaném rozsahu.
-                     * (to - from + 1))
-  return result
-end
-
+  return from                      -- Navrať celé číslo
 \end{filecontents}
-\myinputminted{lua}{randomnames-random.lua}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-b.lua}
+       + math.floor( result        -- v zadaném rozsahu.\footnotemark
+\end{filecontents}
+\begin{filecontents}[overwrite, nosearch, noheader]{randomnames-random-c.lua}
+                   * (to - from + 1))
+end
+\end{filecontents}
+
+\begin{mintedblock}
+\myinputminted{lua}{randomnames-random-a.lua}
+\myinputminted[texcomments]{lua}{randomnames-random-b.lua}
+\footnotetext{Lua\TeX{} reprezentuje reálná čísla vždy pomocí 64bitových čísel s 53bitovou mantisou. Díky tomu dostaneme při použití reálné aritmetiky vždy stejné výsledky nezávisle na platformě. Zvídavý čtenář se ale jistě zamyslí, jak bychom se tu mohli reálné aritmetice zcela vyhnout.}
+\myinputminted{lua}{randomnames-random-c.lua}
+\end{mintedblock}
 
 Generátor můžeme v Lua\TeX u použít následně:
 
@@ -453,6 +461,7 @@ end
 
 \noindent
 \begin{luacode*}
+os.execute("cat randomnames-random-a.lua randomnames-random-b.lua randomnames-random-c.lua > randomnames-random.lua")
 os.execute("cat randomnames-random.lua > randomnames-random-example-helper.lua")
 os.execute("echo return {multiply_modulo, Random} >> randomnames-random-example-helper.lua")
 multiply_modulo, Random = table.unpack(require("randomnames-random-example-helper"))
@@ -467,8 +476,7 @@ Náhodné procházky Katzova couvajícího modelu sestávají z elementárních 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-walk.lua}
 local function take_random_step(graph, context, random)
   if graph[context] == nil then  -- Pokud neexistuje vrchol pro
-    return nil                   -- současný kontext, selži.
-  end
+    return nil end               -- současný kontext, selži.
   local vertex = graph[context]  -- Vyber vrchol pro současný
   assert(#graph[context] > 0)    -- kontext.
   local total_weight = 0         -- Sečti hodnoty odchozích hran.
