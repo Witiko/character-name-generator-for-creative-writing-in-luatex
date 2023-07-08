@@ -721,7 +721,7 @@ end
 Pomocí naší fasády vytvoříme Katzův couvající jazykový model a provedeme v něm náhodnou procházku v Lua\TeX u následně:
 
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-facade-example.lua}
-randomnames.new_model("pes", 1, 3, 1234567)     -- Vytvoř model.
+randomnames.new_model("pes", 1, 3, 22)          -- Vytvoř model.
 randomnames.add_name("pes", "pes filipes")      -- Zanes do modelu
 randomnames.add_name("pes", "pejsek")           -- jména
 randomnames.add_name("pes", "maxipes fík")      -- pohádkových psů.
@@ -1001,7 +1001,7 @@ Pomocí našeho přemostění vytvoříme Katzův couvající jazykový model a 
   {
     min_context_size = 1,
     max_context_size = 3,
-    seed = 1234567,
+    seed = 22,
   }
   { pes }
 \randomnames_add_name:nn { pes } { pes~filipes } % Zanes do modelu
@@ -1106,7 +1106,7 @@ Pomocí našeho uživatelského rozhraní příkazů vytvoříme Katzův couvaj�
 \begin{filecontents}[overwrite, nosearch, noheader]{randomnames-latex-example-02.tex}
 \newmodel[min_context_size=1,                    % Vytvoř model.
           max_context_size=3,
-          seed = 1234567]{pes}
+          seed=22]{pes}
 \addname{pes}{pes filipes}                       % Zanes do modelu
 \addname{pes}{pejsek}                            % jména
 \addname{pes}{maxipes fík}                       % pohádkových psů.
