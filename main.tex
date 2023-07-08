@@ -290,7 +290,8 @@ function ForgetfulModel.input_names(model, filename)
   assert(file)                           -- zadaného textového
   for name in file:lines() do            -- souboru se jmény.
     if #name:match("^%s*(.-)%s*$") == 0  -- Přeskoč prázdné řádky.
-      then goto continue
+    then
+      goto continue
     end
     model:add_name(name)                 -- Zanes jméno do modelu.
     ::continue::
