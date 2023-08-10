@@ -21,3 +21,21 @@ jmen příběhových postav, který jsme v článku vyvinuli.
  [2]: https://github.com/Witiko/character-name-generator-for-creative-writing-in-luatex/releases/download/latest/randomnames.lua
  [3]: https://github.com/Witiko/character-name-generator-for-creative-writing-in-luatex/releases/download/latest/randomnames.tex
  [4]: https://github.com/Witiko/character-name-generator-for-creative-writing-in-luatex/releases/download/latest/randomnames.sty
+
+## Citace
+
+Pro citování tohoto článku použijte následující kód pro BibLaTeX:
+
+``` bib
+@article{starynovotny2023napadovnik,
+  title = {Nápadovník jmen pro tvůrčí psaní v Lua\TeX u},
+  author = {Starý Novotný, Vít},
+  journal = {Zpravodaj \CSTUG u},
+  issn = {1211-6661},
+  year = {2023},
+  volume = {33},
+  number = {1--2},
+  doi = {10.5300/2023-1-2/3},
+  pages = {3-38},
+}
+```
