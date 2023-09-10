@@ -1,7 +1,7 @@
 # Nápadovník jmen postav pro tvůrčí psaní v LuaTeXu
 
 Tento repozitář obsahuje zdrojový kód článku *Nápadovník jmen postav pro
-tvůrčí psaní v LuaTeXu*, který se chystám zveřejnit ve Zpravodaji CSTUGu.
+tvůrčí psaní v LuaTeXu* ze Zpravodaje CSTUGu 2023/1–2.
 
 Pro sazbu článku potřebujeme unixový systém s nainstalovaným programem
 `xmllint` z knihovny libxml2, programem `wget` a interpretrem jazyka
