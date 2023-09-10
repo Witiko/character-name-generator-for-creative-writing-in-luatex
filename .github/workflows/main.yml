@@ -10,7 +10,7 @@ jobs:
     name: Typeset paper
     runs-on: ubuntu-latest
     container:
-      image: texlive/texlive:latest
+      image: texlive/texlive:TL2022-historic
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
